@@ -489,20 +489,20 @@ def launch_cluster(conn, opts, cluster_name):
                 id_to_req = {}
                 for r in reqs:
                     id_to_req[r.id] = r
-                active_instance_ids = []
+                master_instance_ids = []
                 for i in my_req_ids:
                     if i in id_to_req and id_to_req[i].state == "active":
-                        active_instance_ids.append(id_to_req[i].instance_id)
-                if len(active_instance_ids) == opts.slaves:
+                        master_instance_ids.append(id_to_req[i].instance_id)
+                if len(master_instance_ids) == opts.slaves:
                     print("All %d slaves granted" % opts.slaves)
-                    reservations = conn.get_all_reservations(active_instance_ids)
+                    reservations = conn.get_all_reservations(master_instance_ids)
                     slave_nodes = []
                     for r in reservations:
                         slave_nodes += r.instances
                     break
                 else:
                     print("%d of %d slaves granted, waiting longer" % (
-                        len(active_instance_ids), opts.slaves))
+                        len(master_instance_ids), opts.slaves))
         except:
             print("Canceling spot instance requests")
             conn.cancel_spot_instance_requests(my_req_ids)
@@ -545,6 +545,97 @@ def launch_cluster(conn, opts, cluster_name):
                     z=zone,
                     r=slave_res.id))
             i += 1
+
+    # Launch or resume masters
+    if existing_masters:
+        print("Starting master...")
+        for inst in existing_masters:
+            if inst.state not in ["shutting-down", "terminated"]:
+                inst.start()
+        master_nodes = existing_masters
+    else:
+        if opts.spot_price is not None:
+            # Launch spot instances with the requested price
+            print("Requesting the master as a spot instance with price $%.3f" % opts.spot_price)
+            master_type = opts.master_instance_type
+            if master_type == "":
+                master_type = opts.instance_type
+            master_zone = opts.zone
+            if master_zone == 'all':
+                master_zone = random.choice(conn.get_all_zones()).name
+            master_req_ids = []
+            master_req = conn.request_spot_instances(
+                price=opts.spot_price,
+                image_id=opts.ami,
+                launch_group="yarn-launch-group-%s" % cluster_name,
+                placement=master_zone,
+                count=1,
+                key_name=opts.key_pair,
+                security_group_ids=[master_group.id] + additional_group_ids,
+                instance_type=master_type,
+                block_device_map=block_map,
+                subnet_id=opts.subnet_id,
+                placement_group=opts.placement_group,
+                user_data=user_data_content,
+                instance_profile_name=opts.instance_profile_name)
+            master_req_ids += [req.id for req in master_req]
+
+            print("Waiting for the master spot instance to be granted...")
+            try:
+                while True:
+                    time.sleep(10)
+                    reqs = conn.get_all_spot_instance_requests()
+                    id_to_req = {}
+                    for r in reqs:
+                        id_to_req[r.id] = r
+                    master_instance_ids = []
+                    for i in master_req_ids:
+                        if i in id_to_req and id_to_req[i].state == "active":
+                            master_instance_ids.append(id_to_req[i].instance_id)
+                    if len(master_instance_ids) == 1:
+                        print("1 master granted")
+                        reservations = conn.get_all_reservations(master_instance_ids)
+                        master_nodes = []
+                        for r in reservations:
+                            master_nodes += r.instances
+                        break
+                    else:
+                        print("%d of %d master granted, waiting longer" % (
+                            len(master_instance_ids), 1))
+            except:
+                print("Canceling spot instance requests")
+                conn.cancel_spot_instance_requests(master_req_ids)
+                # Log a warning if any of these requests actually launched instances:
+                (master_nodes, slave_nodes) = get_existing_cluster(
+                    conn, opts, cluster_name, die_on_error=False)
+                running = len(master_nodes) + len(slave_nodes)
+                if running:
+                    print(("WARNING: %d instances are still running" % running), file=stderr)
+                sys.exit(0)
+        else:
+            # Launch non-spot instances
+            master_type = opts.master_instance_type
+            if master_type == "":
+                master_type = opts.instance_type
+            master_zone = opts.zone
+            if master_zone == 'all':
+                master_zone = random.choice(conn.get_all_zones()).name
+            master_nodes = []
+            master_res = image.run(
+                key_name=opts.key_pair,
+                security_group_ids=[master_group.id] + additional_group_ids,
+                instance_type=master_type,
+                placement=master_zone,
+                min_count=1,
+                max_count=1,
+                block_device_map=block_map,
+                subnet_id=opts.subnet_id,
+                placement_group=opts.placement_group,
+                user_data=user_data_content,
+                instance_initiated_shutdown_behavior=opts.instance_initiated_shutdown_behavior,
+                instance_profile_name=opts.instance_profile_name)
+            master_nodes += master_res.instances
+            print("Launched 1 master in {z}, regid = {r}".format(z=master_zone, r=master_res.id))
 
 
 # Retrieve an outstanding cluster
