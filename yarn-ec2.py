@@ -367,6 +367,13 @@ EC2_INSTANCE_TYPES = {
 }
 
 
+# Attempt to resolve an appropriate AMI given the architecture and region of the request.
+def get_yarn_ami(opts):
+    ami = 'ami-f4cc1de2'  # Ubuntu 16.04
+    print("AMI: " + ami)
+    return ami
+
+
 # Launch a cluster of the given name, by setting up its security groups,
 # and then starting new instances in them.
 # Returns a tuple of EC2 reservation objects for the master and slaves
@@ -404,6 +411,24 @@ def launch_cluster(conn, opts, cluster_name):
     if existing_slaves or (existing_masters and not opts.use_existing_master):
         print("ERROR: There are already instances running in group %s or %s" %
               (master_group.name, slave_group.name), file=stderr)
+        sys.exit(1)
+
+    # Figure out AMI
+    if opts.ami is None:
+        opts.ami = get_yarn_ami(opts)
+
+    # Use group ids to work around https://github.com/boto/boto/issues/350
+    additional_group_ids = []
+    if opts.additional_security_group:
+        additional_group_ids = [sg.id
+                                for sg in conn.get_all_security_groups()
+                                if opts.additional_security_group in (sg.name, sg.id)]
+    print("Launching instances...")
+
+    try:
+        image = conn.get_all_images(image_ids=[opts.ami])[0]
+    except:
+        print("Could not find AMI " + opts.ami, file=stderr)
         sys.exit(1)
 
 
