@@ -398,6 +398,41 @@ def real_main():
                     t=EC2_INSTANCE_TYPES[opts.instance_type]), file=stderr)
                 sys.exit(1)
 
+    if opts.ebs_vol_num > 8:
+        print("ebs-vol-num cannot be greater than 8", file=stderr)
+        sys.exit(1)
+
+    # Prevent breaking ami_prefix (/, .git and startswith checks)
+    # Prevent forks with non yarn-ec2 names for now.
+    if opts.yarn_ec2_git_repo.endswith("/") or \
+            opts.yarn_ec2_git_repo.endswith(".git") or \
+            not opts.yarn_ec2_git_repo.startswith("https://github.com") or \
+            not opts.yarn_ec2_git_repo.endswith("yarn-ec2"):
+        print("yarn-ec2-git-repo must be a github repo and it must not have a trailing / or .git. "
+              "Furthermore, we currently only support forks named yarn-ec2.", file=stderr)
+        sys.exit(1)
+
+    if not (opts.deploy_root_dir is None or
+                (os.path.isabs(opts.deploy_root_dir) and
+                     os.path.isdir(opts.deploy_root_dir) and
+                     os.path.exists(opts.deploy_root_dir))):
+        print("--deploy-root-dir must be an absolute path to a directory that exists "
+              "on the local file system", file=stderr)
+        sys.exit(1)
+
+    try:
+        if opts.profile is None:
+            conn = ec2.connect_to_region(opts.region)
+        else:
+            conn = ec2.connect_to_region(opts.region, profile_name=opts.profile)
+    except Exception as e:
+        print((e), file=stderr)
+        sys.exit(1)
+
+    # Select an AZ at random if it was not specified.
+    if opts.zone == "":
+        opts.zone = random.choice(conn.get_all_zones()).name
+
 
 def main():
     try:
