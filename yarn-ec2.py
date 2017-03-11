@@ -458,10 +458,8 @@ def launch_cluster(conn, opts, cluster_name):
               (opts.slaves, opts.spot_price))
         zones = get_zones(conn, opts)
         num_zones = len(zones)
-        if num_zones != 1:
-            print("WARNING: creating instances across multiple zones", file=stderr)
         i = 0
-        my_req_ids = []
+        slave_req_ids = []
         for zone in zones:
             num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
             slave_reqs = conn.request_spot_instances(
@@ -478,7 +476,7 @@ def launch_cluster(conn, opts, cluster_name):
                 placement_group=opts.placement_group,
                 user_data=user_data_content,
                 instance_profile_name=opts.instance_profile_name)
-            my_req_ids += [req.id for req in slave_reqs]
+            slave_req_ids += [req.id for req in slave_reqs]
             i += 1
 
         print("Waiting for spot instances to be granted...")
@@ -489,23 +487,23 @@ def launch_cluster(conn, opts, cluster_name):
                 id_to_req = {}
                 for r in reqs:
                     id_to_req[r.id] = r
-                master_instance_ids = []
-                for i in my_req_ids:
+                slave_instance_ids = []
+                for i in slave_req_ids:
                     if i in id_to_req and id_to_req[i].state == "active":
-                        master_instance_ids.append(id_to_req[i].instance_id)
-                if len(master_instance_ids) == opts.slaves:
+                        slave_instance_ids.append(id_to_req[i].instance_id)
+                if len(slave_instance_ids) == opts.slaves:
                     print("All %d slaves granted" % opts.slaves)
-                    reservations = conn.get_all_reservations(master_instance_ids)
+                    reservations = conn.get_all_reservations(slave_instance_ids)
                     slave_nodes = []
                     for r in reservations:
                         slave_nodes += r.instances
                     break
                 else:
                     print("%d of %d slaves granted, waiting longer" % (
-                        len(master_instance_ids), opts.slaves))
+                        len(slave_instance_ids), opts.slaves))
         except:
             print("Canceling spot instance requests")
-            conn.cancel_spot_instance_requests(my_req_ids)
+            conn.cancel_spot_instance_requests(slave_req_ids)
             # Log a warning if any of these requests actually launched instances:
             (master_nodes, slave_nodes) = get_existing_cluster(
                 conn, opts, cluster_name, die_on_error=False)
@@ -515,11 +513,8 @@ def launch_cluster(conn, opts, cluster_name):
             sys.exit(0)
     else:
         # Launch non-spot instances
-        print("WARNING: not using spot-instances", file=stderr)
         zones = get_zones(conn, opts)
         num_zones = len(zones)
-        if num_zones != 1:
-            print("WARNING: creating instances across multiple zones", file=stderr)
         i = 0
         slave_nodes = []
         for zone in zones:
