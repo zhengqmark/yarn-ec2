@@ -52,19 +52,19 @@ else:
     raw_input = input
     xrange = range
 
-YARN_EC2_VERSION = "0.17"
+YARN_EC2_VERSION = "master"
 YARN_EC2_DIR = os.path.dirname(os.path.realpath(__file__))
 
 VALID_YARN_VERSIONS = set([
-    "0.17"
+    "master"
 ])
 
 DEFAULT_YARN_VERSION = YARN_EC2_VERSION
-DEFAULT_YARN_GITHUB_REPO = "https://github.com/apache/spark"
+DEFAULT_YARN_GITHUB_REPO = "https://github.com/zhengqmark/yarn"
 
 # Default location to get the yarn-ec2 scripts (and ami-list) from
-DEFAULT_YARN_EC2_GITHUB_REPO = "https://github.com/amplab/spark-ec2"
-DEFAULT_YARN_EC2_BRANCH = "branch-1.6"
+DEFAULT_YARN_EC2_GITHUB_REPO = "https://github.com/zhengqmark/yarn-ec2"
+DEFAULT_YARN_EC2_BRANCH = "master"
 
 
 def setup_external_libs(libs):
@@ -87,7 +87,7 @@ def setup_external_libs(libs):
 
         if not os.path.isdir(lib_dir):
             tgz_file_path = os.path.join(YARN_EC2_LIB_DIR, versioned_lib_name + ".tar.gz")
-            print(" - Downloading {lib}...".format(lib=lib["name"]))
+            print(" - Downloading {lib}-{ver}...".format(lib=lib["name"], ver=lib["version"]))
             download_stream = urlopen(
                 "{prefix}/{h0}/{h1}/{h2}/{lib_name}-{lib_version}.tar.gz".format(
                     prefix=PYPI_URL_PREFIX,
@@ -133,8 +133,189 @@ class UsageError(Exception):
     pass
 
 
+# Configure and parse our command-line arguments
+def parse_args():
+    parser = OptionParser(
+        prog="yarn-ec2",
+        version="%prog {v}".format(v=YARN_EC2_VERSION),
+        usage="%prog [options] <action> <cluster_name>\n\n"
+              + "<action> can be: launch, destroy, login, stop, start")
+
+    parser.add_option(
+        "-s", "--slaves", type="int", default=1,
+        help="Number of slaves to launch (default: %default)")
+    parser.add_option(
+        "-k", "--key-pair",
+        help="Key pair to use on instances")
+    parser.add_option(
+        "-i", "--identity-file",
+        help="SSH private key file to use for logging into instances")
+    parser.add_option(
+        "-p", "--profile", default=None,
+        help="If you have multiple profiles (AWS or boto config), you can configure " +
+             "additional, named profiles by using this option (default: %default)")
+    parser.add_option(
+        "-t", "--instance-type", default="c3.large",
+        help="Type of instance to launch (default: %default). " +
+             "WARNING: must be 64-bit; small instances won't work")
+    parser.add_option(
+        "-m", "--master-instance-type", default="",
+        help="Master instance type (leave empty for same as instance-type)")
+    parser.add_option(
+        "-r", "--region", default="us-east-1",
+        help="EC2 region used to launch instances in, or to find them in (default: %default)")
+    parser.add_option(
+        "-z", "--zone", default="",
+        help="Availability zone to launch instances in, or 'all' to spread " +
+             "slaves across multiple (an additional $0.01/Gb for bandwidth" +
+             "between zones applies) (default: a single zone chosen at random)")
+    parser.add_option(
+        "-a", "--ami",
+        help="Amazon Machine Image ID to use")
+    parser.add_option(
+        "-v", "--yarn-version", default=DEFAULT_YARN_VERSION,
+        help="Version of YARN to use: 'X.Y.Z' or a specific git hash (default: %default)")
+    parser.add_option(
+        "--yarn-git-repo",
+        default=DEFAULT_YARN_GITHUB_REPO,
+        help="Github repo from which to checkout supplied commit hash (default: %default)")
+    parser.add_option(
+        "--yarn-ec2-git-repo",
+        default=DEFAULT_YARN_EC2_GITHUB_REPO,
+        help="Github repo from which to checkout yarn-ec2 (default: %default)")
+    parser.add_option(
+        "--yarn-ec2-git-branch",
+        default=DEFAULT_YARN_EC2_BRANCH,
+        help="Github repo branch of yarn-ec2 to use (default: %default)")
+    parser.add_option(
+        "--deploy-root-dir",
+        default=None,
+        help="A directory to copy into / on the first master. " +
+             "Must be absolute. Note that a trailing slash is handled as per rsync: " +
+             "If you omit it, the last directory of the --deploy-root-dir path will be created " +
+             "in / before copying its contents. If you append the trailing slash, " +
+             "the directory is not created and its contents are copied directly into /. " +
+             "(default: %default).")
+    parser.add_option(
+        "--hadoop-major-version", default="1",
+        help="Major version of Hadoop. Valid options are 1 (Hadoop 1.0.4), 2 (CDH 4.2.0), yarn " +
+             "(Hadoop 2.4.0) (default: %default)")
+    parser.add_option(
+        "-D", metavar="[ADDRESS:]PORT", dest="proxy_port",
+        help="Use SSH dynamic port forwarding to create a SOCKS proxy at " +
+             "the given local address (for use with login)")
+    parser.add_option(
+        "--ebs-vol-size", metavar="SIZE", type="int", default=0,
+        help="Size (in GB) of each EBS volume.")
+    parser.add_option(
+        "--ebs-vol-type", default="standard",
+        help="EBS volume type (e.g. 'gp2', 'standard').")
+    parser.add_option(
+        "--ebs-vol-num", type="int", default=1,
+        help="Number of EBS volumes to attach to each node as /vol[x]. " +
+             "The volumes will be deleted when the instances terminate. " +
+             "Only possible on EBS-backed AMIs. " +
+             "EBS volumes are only attached if --ebs-vol-size > 0. " +
+             "Only support up to 8 EBS volumes.")
+    parser.add_option(
+        "--placement-group", type="string", default=None,
+        help="Which placement group to try and launch " +
+             "instances into. Assumes placement group is already " +
+             "created.")
+    parser.add_option(
+        "--spot-price", metavar="PRICE", type="float",
+        help="If specified, launch slaves as spot instances with the given " +
+             "maximum price (in dollars)")
+    parser.add_option(
+        "-u", "--user", default="root",
+        help="The SSH user you want to connect as (default: %default)")
+    parser.add_option(
+        "--delete-groups", action="store_true", default=False,
+        help="When destroying a cluster, delete the security groups that were created")
+    parser.add_option(
+        "--use-existing-master", action="store_true", default=False,
+        help="Launch fresh slaves, but use an existing stopped master if possible")
+    parser.add_option(
+        "--user-data", type="string", default="",
+        help="Path to a user-data file (most AMIs interpret this as an initialization script)")
+    parser.add_option(
+        "--authorized-address", type="string", default="0.0.0.0/0",
+        help="Address to authorize on created security groups (default: %default)")
+    parser.add_option(
+        "--additional-security-group", type="string", default="",
+        help="Additional security group to place the machines in")
+    parser.add_option(
+        "--additional-tags", type="string", default="",
+        help="Additional tags to set on the machines; tags are comma-separated, while name and " +
+             "value are colon separated; ex: \"Course:advcc,Project:yarn\"")
+    parser.add_option(
+        "--subnet-id", default=None,
+        help="VPC subnet to launch instances in")
+    parser.add_option(
+        "--vpc-id", default=None,
+        help="VPC to launch instances in")
+    parser.add_option(
+        "--private-ips", action="store_true", default=False,
+        help="Use private IPs for instances rather than public if VPC/subnet " +
+             "requires that.")
+    parser.add_option(
+        "--instance-initiated-shutdown-behavior", default="stop",
+        choices=["stop", "terminate"],
+        help="Whether instances should terminate when shut down or just stop")
+    parser.add_option(
+        "--instance-profile-name", default=None,
+        help="IAM profile name to launch instances under")
+
+    (opts, args) = parser.parse_args()
+    if len(args) != 2:
+        parser.print_help()
+        sys.exit(1)
+    (action, cluster_name) = args
+
+    # Boto config check
+    # http://boto.cloudhackers.com/en/latest/boto_config_tut.html
+    home_dir = os.getenv('HOME')
+    if home_dir is None or not os.path.isfile(home_dir + '/.boto'):
+        if not os.path.isfile('/etc/boto.cfg'):
+            # If there is no boto config, check aws credentials
+            if not os.path.isfile(home_dir + '/.aws/credentials'):
+                if os.getenv('AWS_ACCESS_KEY_ID') is None:
+                    print("ERROR: The environment variable AWS_ACCESS_KEY_ID must be set",
+                          file=stderr)
+                    sys.exit(1)
+                if os.getenv('AWS_SECRET_ACCESS_KEY') is None:
+                    print("ERROR: The environment variable AWS_SECRET_ACCESS_KEY must be set",
+                          file=stderr)
+                    sys.exit(1)
+    return (opts, action, cluster_name)
+
+
+def get_validate_yarn_version(version, repo):
+    if "." in version:
+        version = version.replace("v", "")
+        if version not in VALID_YARN_VERSIONS:
+            print("Don't know about YARN version: {v}".format(v=version), file=stderr)
+            sys.exit(1)
+        return version
+    else:
+        github_commit_url = "{repo}/commit/{commit_hash}".format(repo=repo, commit_hash=version)
+        request = Request(github_commit_url)
+        request.get_method = lambda: 'HEAD'
+        try:
+            response = urlopen(request)
+        except HTTPError as e:
+            print("Couldn't validate YARN commit: {url}".format(url=github_commit_url),
+                  file=stderr)
+            print("Received HTTP response code of {code}.".format(code=e.code), file=stderr)
+            sys.exit(1)
+        return version
+
+
 def real_main():
-    pass
+    (opts, action, cluster_name) = parse_args()
+
+    # Input parameter validation
+    get_validate_yarn_version(opts.yarn_version, opts.yarn_git_repo)
 
 
 def main():
