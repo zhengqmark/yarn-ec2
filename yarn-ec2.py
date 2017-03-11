@@ -451,6 +451,101 @@ def launch_cluster(conn, opts, cluster_name):
             name = '/dev/sd' + string.ascii_letters[i + 1]
             block_map[name] = dev
 
+    # Launch slaves
+    if opts.spot_price is not None:
+        # Launch spot instances with the requested price
+        print("Requesting %d slaves as spot instances with price $%.3f" %
+              (opts.slaves, opts.spot_price))
+        zones = get_zones(conn, opts)
+        num_zones = len(zones)
+        if num_zones != 1:
+            print("WARNING: creating instances across multiple zones", file=stderr)
+        i = 0
+        my_req_ids = []
+        for zone in zones:
+            num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
+            slave_reqs = conn.request_spot_instances(
+                price=opts.spot_price,
+                image_id=opts.ami,
+                launch_group="yarn-launch-group-%s" % cluster_name,
+                placement=zone,
+                count=num_slaves_this_zone,
+                key_name=opts.key_pair,
+                security_group_ids=[slave_group.id] + additional_group_ids,
+                instance_type=opts.instance_type,
+                block_device_map=block_map,
+                subnet_id=opts.subnet_id,
+                placement_group=opts.placement_group,
+                user_data=user_data_content,
+                instance_profile_name=opts.instance_profile_name)
+            my_req_ids += [req.id for req in slave_reqs]
+            i += 1
+
+        print("Waiting for spot instances to be granted...")
+        try:
+            while True:
+                time.sleep(10)
+                reqs = conn.get_all_spot_instance_requests()
+                id_to_req = {}
+                for r in reqs:
+                    id_to_req[r.id] = r
+                active_instance_ids = []
+                for i in my_req_ids:
+                    if i in id_to_req and id_to_req[i].state == "active":
+                        active_instance_ids.append(id_to_req[i].instance_id)
+                if len(active_instance_ids) == opts.slaves:
+                    print("All %d slaves granted" % opts.slaves)
+                    reservations = conn.get_all_reservations(active_instance_ids)
+                    slave_nodes = []
+                    for r in reservations:
+                        slave_nodes += r.instances
+                    break
+                else:
+                    print("%d of %d slaves granted, waiting longer" % (
+                        len(active_instance_ids), opts.slaves))
+        except:
+            print("Canceling spot instance requests")
+            conn.cancel_spot_instance_requests(my_req_ids)
+            # Log a warning if any of these requests actually launched instances:
+            (master_nodes, slave_nodes) = get_existing_cluster(
+                conn, opts, cluster_name, die_on_error=False)
+            running = len(master_nodes) + len(slave_nodes)
+            if running:
+                print(("WARNING: %d instances are still running" % running), file=stderr)
+            sys.exit(0)
+    else:
+        # Launch non-spot instances
+        print("WARNING: not using spot-instances", file=stderr)
+        zones = get_zones(conn, opts)
+        num_zones = len(zones)
+        if num_zones != 1:
+            print("WARNING: creating instances across multiple zones", file=stderr)
+        i = 0
+        slave_nodes = []
+        for zone in zones:
+            num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
+            if num_slaves_this_zone > 0:
+                slave_res = image.run(
+                    key_name=opts.key_pair,
+                    security_group_ids=[slave_group.id] + additional_group_ids,
+                    instance_type=opts.instance_type,
+                    placement=zone,
+                    min_count=num_slaves_this_zone,
+                    max_count=num_slaves_this_zone,
+                    block_device_map=block_map,
+                    subnet_id=opts.subnet_id,
+                    placement_group=opts.placement_group,
+                    user_data=user_data_content,
+                    instance_initiated_shutdown_behavior=opts.instance_initiated_shutdown_behavior,
+                    instance_profile_name=opts.instance_profile_name)
+                slave_nodes += slave_res.instances
+                print("Launched {s} slave{plural_s} in {z}, regid = {r}".format(
+                    s=num_slaves_this_zone,
+                    plural_s=('' if num_slaves_this_zone == 1 else 's'),
+                    z=zone,
+                    r=slave_res.id))
+            i += 1
+
 
 # Retrieve an outstanding cluster
 def get_existing_cluster(conn, opts, cluster_name, die_on_error=True):
@@ -542,6 +637,23 @@ def get_num_disks(instance_type):
         print("WARNING: Don't know number of disks on instance type %s; assuming 0"
               % instance_type, file=stderr)
         return 0
+
+
+# Gets a list of zones to launch instances in
+def get_zones(conn, opts):
+    if opts.zone == 'all':
+        zones = [z.name for z in conn.get_all_zones()]
+    else:
+        zones = [opts.zone]
+    return zones
+
+
+# Gets the number of items in a partition
+def get_partition(total, num_partitions, current_partitions):
+    num_slaves_this_zone = total // num_partitions
+    if (total % num_partitions) - current_partitions > 0:
+        num_slaves_this_zone += 1
+    return num_slaves_this_zone
 
 
 def real_main():
