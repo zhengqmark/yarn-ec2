@@ -398,6 +398,53 @@ def launch_cluster(conn, opts, cluster_name):
         slave_group.authorize('udp', 0, 65535, authorized_address)
         slave_group.authorize('icmp', -1, -1, authorized_address)
 
+    # Check if instances are already running in our groups
+    existing_masters, existing_slaves = get_existing_cluster(conn, opts, cluster_name,
+                                                             die_on_error=False)
+    if existing_slaves or (existing_masters and not opts.use_existing_master):
+        print("ERROR: There are already instances running in group %s or %s" %
+              (master_group.name, slave_group.name), file=stderr)
+        sys.exit(1)
+
+
+# Retrieve an outstanding cluster
+def get_existing_cluster(conn, opts, cluster_name, die_on_error=True):
+    """
+    Get the EC2 instances in an existing cluster if available.
+    Returns a tuple of lists of EC2 instance objects for the masters and slaves.
+    """
+    print("Searching for existing cluster {c} in region {r}...".format(
+        c=cluster_name, r=opts.region))
+
+    def get_instances(group_names):
+        """
+        Get all non-terminated instances that belong to any of the provided security groups.
+
+        EC2 reservation filters and instance states are documented here:
+            http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html#options
+        """
+        reservations = conn.get_all_reservations(
+            filters={"instance.group-name": group_names})
+        instances = itertools.chain.from_iterable(r.instances for r in reservations)
+        return [i for i in instances if i.state not in ["shutting-down", "terminated"]]
+
+    master_instances = get_instances([cluster_name + "-master"])
+    slave_instances = get_instances([cluster_name + "-slaves"])
+
+    if any((master_instances, slave_instances)):
+        print("Found {m} master{plural_m}, {s} slave{plural_s}.".format(
+            m=len(master_instances),
+            plural_m=('' if len(master_instances) == 1 else 's'),
+            s=len(slave_instances),
+            plural_s=('' if len(slave_instances) == 1 else 's')))
+
+    if not master_instances and die_on_error:
+        print("ERROR: Could not find a master for cluster {c} in region {r}.".format(
+            c=cluster_name, r=opts.region), file=sys.stderr)
+        sys.exit(1)
+
+    return (master_instances, slave_instances)
+
 
 def real_main():
     (opts, action, cluster_name) = parse_args()
