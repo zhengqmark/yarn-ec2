@@ -431,6 +431,26 @@ def launch_cluster(conn, opts, cluster_name):
         print("Could not find AMI " + opts.ami, file=stderr)
         sys.exit(1)
 
+    # Create block device mapping so that we can add EBS volumes if asked to.
+    # The first drive is attached as /dev/sds, 2nd as /dev/sdt, ... /dev/sdz
+    block_map = BlockDeviceMapping()
+    if opts.ebs_vol_size > 0:
+        for i in range(opts.ebs_vol_num):
+            device = EBSBlockDeviceType()
+            device.size = opts.ebs_vol_size
+            device.volume_type = opts.ebs_vol_type
+            device.delete_on_termination = True
+            block_map["/dev/sd" + chr(ord('s') + i)] = device
+
+    # AMI-specified block device mapping for C3 instances
+    if opts.instance_type.startswith('c3.'):
+        for i in range(get_num_disks(opts.instance_type)):
+            dev = BlockDeviceType()
+            dev.ephemeral_name = 'ephemeral%d' % i
+            # The first ephemeral drive is /dev/sdb.
+            name = '/dev/sd' + string.ascii_letters[i + 1]
+            block_map[name] = dev
+
 
 # Retrieve an outstanding cluster
 def get_existing_cluster(conn, opts, cluster_name, die_on_error=True):
@@ -469,6 +489,59 @@ def get_existing_cluster(conn, opts, cluster_name, die_on_error=True):
         sys.exit(1)
 
     return (master_instances, slave_instances)
+
+
+# Get number of local disks available for a given EC2 instance type.
+def get_num_disks(instance_type):
+    # Source: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html
+    # Last Updated: 2017-03-11
+    # For easy maintainability, please keep this manually-inputted dictionary sorted by key.
+    disks_by_instance = {
+        "c3.large": "2",
+        "c3.xlarge": "2",
+        "c3.2xlarge": "2",
+        "c3.4xlarge": "2",
+        "c3.8xlarge": "2",
+        "c4.large": "0",
+        "c4.xlarge": "0",
+        "c4.2xlarge": "0",
+        "c4.4xlarge": "0",
+        "c4.8xlarge": "0",
+        "m3.medium": "1",
+        "m3.large": "1",
+        "m3.xlarge": "2",
+        "m3.2xlarge": "2",
+        "m4.large": "0",
+        "m4.xlarge": "0",
+        "m4.2xlarge": "0",
+        "m4.4xlarge": "0",
+        "m4.10xlarge": "0",
+        "m4.16xlarge": "0",
+        "r3.large": "1",
+        "r3.xlarge": "1",
+        "r3.2xlarge": "1",
+        "r3.4xlarge": "1",
+        "r3.8xlarge": "2",
+        "r4.large": "0",
+        "r4.xlarge": "0",
+        "r4.2xlarge": "0",
+        "r4.4xlarge": "0",
+        "r4.8xlarge": "0",
+        "r4.16xlarge": "0",
+        "t2.nano": "0",
+        "t2.micro": "0",
+        "t2.small": "0",
+        "t2.medium": "0",
+        "t2.large": "0",
+        "t2.xlarge": "0",
+        "t2.2xlarge": "0",
+    }
+    if instance_type in disks_by_instance:
+        return int(disks_by_instance[instance_type])
+    else:
+        print("WARNING: Don't know number of disks on instance type %s; assuming 0"
+              % instance_type, file=stderr)
+        return 0
 
 
 def real_main():
