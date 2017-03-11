@@ -22,6 +22,6 @@
 # the underlying Python script.
 YARN_EC2_DIR="$(dirname "$0")"
 
-python -Wdefault "${YARN_EC2_DIR}/yarn_ec2.py" "$@"
+python -Wdefault "${YARN_EC2_DIR}/yarn-ec2.py" "$@"
 
 exit 0

@@ -71,7 +71,7 @@ def setup_external_libs(libs):
     """
     Download external libraries from PyPI to YARN_EC2_DIR/lib and prepend them to our PATH.
     """
-    PYPI_URL_PREFIX = "https://pypi.python.org/packages/source"
+    PYPI_URL_PREFIX = "https://pypi.python.org/packages"
     YARN_EC2_LIB_DIR = os.path.join(YARN_EC2_DIR, "lib")
 
     if not os.path.exists(YARN_EC2_LIB_DIR):
@@ -89,9 +89,11 @@ def setup_external_libs(libs):
             tgz_file_path = os.path.join(YARN_EC2_LIB_DIR, versioned_lib_name + ".tar.gz")
             print(" - Downloading {lib}...".format(lib=lib["name"]))
             download_stream = urlopen(
-                "{prefix}/{first_letter}/{lib_name}/{lib_name}-{lib_version}.tar.gz".format(
+                "{prefix}/{h0}/{h1}/{h2}/{lib_name}-{lib_version}.tar.gz".format(
                     prefix=PYPI_URL_PREFIX,
-                    first_letter=lib["name"][:1],
+                    h0=lib["hash"][:2],
+                    h1=lib["hash"][2:4],
+                    h2=lib["hash"][4:],
                     lib_name=lib["name"],
                     lib_version=lib["version"]
                 )
@@ -115,6 +117,7 @@ external_libs = [
     {
         "name": "boto",
         "version": "2.46.1",
+        "hash": "b1f9cf8fa9a4a48e651294fc88446edee96f8b965f1d3ca044befc5dd7c9449b",
         "md5": "0f952cefb7631d7847da07febb2b15cd"
     }
 ]
@@ -129,8 +132,10 @@ from boto import ec2
 class UsageError(Exception):
     pass
 
+
 def real_main():
     pass
+
 
 def main():
     try:
