@@ -311,6 +311,51 @@ def get_validate_yarn_version(version, repo):
         return version
 
 
+# Source: http://aws.amazon.com/amazon-linux-ami/instance-type-matrix/
+# Last Updated: 2017-03-11
+# For easy maintainability, please keep this manually-inputted dictionary sorted by key.
+EC2_INSTANCE_TYPES = {
+    "c3.large": "hvm",
+    "c3.xlarge": "hvm",
+    "c3.2xlarge": "hvm",
+    "c3.4xlarge": "hvm",
+    "c3.8xlarge": "hvm",
+    "c4.large": "hvm",
+    "c4.xlarge": "hvm",
+    "c4.2xlarge": "hvm",
+    "c4.4xlarge": "hvm",
+    "c4.8xlarge": "hvm",
+    "m3.medium": "hvm",
+    "m3.large": "hvm",
+    "m3.xlarge": "hvm",
+    "m3.2xlarge": "hvm",
+    "m4.large": "hvm",
+    "m4.xlarge": "hvm",
+    "m4.2xlarge": "hvm",
+    "m4.4xlarge": "hvm",
+    "m4.10xlarge": "hvm",
+    "m4.16xlarge": "hvm",
+    "r3.large": "hvm",
+    "r3.xlarge": "hvm",
+    "r3.2xlarge": "hvm",
+    "r3.4xlarge": "hvm",
+    "r3.8xlarge": "hvm",
+    "r4.large": "hvm",
+    "r4.xlarge": "hvm",
+    "r4.2xlarge": "hvm",
+    "r4.4xlarge": "hvm",
+    "r4.8xlarge": "hvm",
+    "r4.16xlarge": "hvm",
+    "t2.nano": "hvm",
+    "t2.micro": "hvm",
+    "t2.small": "hvm",
+    "t2.medium": "hvm",
+    "t2.large": "hvm",
+    "t2.xlarge": "hvm",
+    "t2.2xlarge": "hvm",
+}
+
+
 def real_main():
     (opts, action, cluster_name) = parse_args()
 
@@ -330,6 +375,28 @@ def real_main():
             print('You can fix this with: chmod 400 "{f}"'.format(f=opts.identity_file),
                   file=stderr)
             sys.exit(1)
+
+    if opts.instance_type not in EC2_INSTANCE_TYPES:
+        print("Warning: Unrecognized EC2 instance type for instance-type: {t}".format(
+            t=opts.instance_type), file=stderr)
+
+        if opts.master_instance_type != "":
+            if opts.master_instance_type not in EC2_INSTANCE_TYPES:
+                print("Warning: Unrecognized EC2 instance type for master-instance-type: {t}".format(
+                    t=opts.master_instance_type), file=stderr)
+        # Since we try instance types even if we can't resolve them, we check if they resolve first
+        # and, if they do, see if they resolve to the same VM type.
+        if opts.instance_type in EC2_INSTANCE_TYPES and \
+                        opts.master_instance_type in EC2_INSTANCE_TYPES:
+            if EC2_INSTANCE_TYPES[opts.instance_type] != \
+                    EC2_INSTANCE_TYPES[opts.master_instance_type]:
+                print("Error: yarn-ec2 currently does not support having a master and slaves "
+                      "with different AMI virtualization types.", file=stderr)
+                print("master instance virtualization type: {t}".format(
+                    t=EC2_INSTANCE_TYPES[opts.master_instance_type]), file=stderr)
+                print("slave instance virtualization type: {t}".format(
+                    t=EC2_INSTANCE_TYPES[opts.instance_type]), file=stderr)
+                sys.exit(1)
 
 
 def main():
