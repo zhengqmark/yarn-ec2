@@ -390,9 +390,13 @@ def launch_cluster(conn, opts, cluster_name):
     slave_group = get_or_make_group(conn, cluster_name + "-slaves", opts.vpc_id)
     authorized_address = opts.authorized_address
     if master_group.rules == []:  # Group was just now created
-        master_group.authorize(cidr_ip=authorized_address)
+        master_group.authorize('tcp', 0, 65535, authorized_address)
+        master_group.authorize('udp', 0, 65535, authorized_address)
+        master_group.authorize('icmp', -1, -1, authorized_address)
     if slave_group.rules == []:  # Group was just now created
-        slave_group.authorize(cidr_ip=authorized_address)
+        slave_group.authorize('tcp', 0, 65535, authorized_address)
+        slave_group.authorize('udp', 0, 65535, authorized_address)
+        slave_group.authorize('icmp', -1, -1, authorized_address)
 
 
 def real_main():
