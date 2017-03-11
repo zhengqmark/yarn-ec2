@@ -317,6 +317,20 @@ def real_main():
     # Input parameter validation
     get_validate_yarn_version(opts.yarn_version, opts.yarn_git_repo)
 
+    # Ensure identity file
+    if opts.identity_file is not None:
+        if not os.path.exists(opts.identity_file):
+            print("ERROR: The identity file '{f}' doesn't exist.".format(f=opts.identity_file),
+                  file=stderr)
+            sys.exit(1)
+
+        file_mode = os.stat(opts.identity_file).st_mode
+        if not (file_mode & S_IRUSR) or not oct(file_mode)[-2:] == '00':
+            print("ERROR: The identity file must be accessible only by you.", file=stderr)
+            print('You can fix this with: chmod 400 "{f}"'.format(f=opts.identity_file),
+                  file=stderr)
+            sys.exit(1)
+
 
 def main():
     try:
