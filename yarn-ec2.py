@@ -290,6 +290,17 @@ def parse_args():
     return (opts, action, cluster_name)
 
 
+# Get the EC2 security group of the given name, creating it if it doesn't exist
+def get_or_make_group(conn, name, vpc_id):
+    groups = conn.get_all_security_groups()
+    group = [g for g in groups if g.name == name]
+    if len(group) > 0:
+        return group[0]
+    else:
+        print("Creating security group " + name)
+        return conn.create_security_group(name, "yarn-ec2 group", vpc_id)
+
+
 def get_validate_yarn_version(version, repo):
     if "." in version:
         version = version.replace("v", "")
@@ -354,6 +365,34 @@ EC2_INSTANCE_TYPES = {
     "t2.xlarge": "hvm",
     "t2.2xlarge": "hvm",
 }
+
+
+# Launch a cluster of the given name, by setting up its security groups,
+# and then starting new instances in them.
+# Returns a tuple of EC2 reservation objects for the master and slaves
+# Fails if there already instances running in the cluster's groups.
+def launch_cluster(conn, opts, cluster_name):
+    if opts.identity_file is None:
+        print("ERROR: Must provide an identity file (-i) for ssh connections.", file=stderr)
+        sys.exit(1)
+
+    if opts.key_pair is None:
+        print("ERROR: Must provide a key pair name (-k) to use on instances.", file=stderr)
+        sys.exit(1)
+
+    user_data_content = None
+    if opts.user_data:
+        with open(opts.user_data) as user_data_file:
+            user_data_content = user_data_file.read()
+
+    print("Setting up security groups...")
+    master_group = get_or_make_group(conn, cluster_name + "-master", opts.vpc_id)
+    slave_group = get_or_make_group(conn, cluster_name + "-slaves", opts.vpc_id)
+    authorized_address = opts.authorized_address
+    if master_group.rules == []:  # Group was just now created
+        master_group.authorize(cidr_ip=authorized_address)
+    if slave_group.rules == []:  # Group was just now created
+        slave_group.authorize(cidr_ip=authorized_address)
 
 
 def real_main():
@@ -432,6 +471,13 @@ def real_main():
     # Select an AZ at random if it was not specified.
     if opts.zone == "":
         opts.zone = random.choice(conn.get_all_zones()).name
+
+    if action == "launch":
+        if opts.slaves <= 0:
+            print("ERROR: You have to start at least 1 slave", file=sys.stderr)
+            sys.exit(1)
+
+        launch_cluster(conn, opts, cluster_name)
 
 
 def main():
