@@ -753,7 +753,7 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
         opts=opts,
         command="rm -rf yarn-ec2"
                 + " && "
-                + "git clone {r} -b {b} share/yarn-ec2".format(
+                + "git clone {r} -b {b} ~/share/yarn-ec2".format(
             r=opts.yarn_ec2_git_repo,
             b=opts.yarn_ec2_git_branch
         )
@@ -774,8 +774,10 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
 
 
 def setup_spark_cluster(master, opts):
-    ssh(master, opts, "chmod u+x share/yarn-ec2/setup.sh")
-    ssh(master, opts, "share/yarn-ec2/setup.sh")
+    ssh(master, opts, "chmod u+x ~/share/yarn-ec2/setup.sh")
+    ssh(master, opts, "chmod u+x ~/share/yarn-ec2/slave-setup.sh")
+
+    ssh(master, opts, "~/share/yarn-ec2/setup.sh")
 
 
 def is_ssh_available(host, opts, print_ssh_output=True):
@@ -935,15 +937,17 @@ def get_num_disks(instance_type):
 def deploy_files(conn, root_dir, opts, master_nodes, slave_nodes):
     active_master = get_dns_name(master_nodes[0], opts.private_ips)
 
-    master_addresses = [get_dns_name(i, opts.private_ips) for i in master_nodes]
-    slave_addresses = [get_dns_name(i, opts.private_ips) for i in slave_nodes]
+    master_addresses = [get_dns_name(i, True) for i in master_nodes]
+    slave_addresses = [get_dns_name(i, True) for i in slave_nodes]
+
+    # Instantiate templates
     template_vars = {
         "master_list": '\n'.join(master_addresses),
         "slave_list": '\n'.join(slave_addresses),
     }
 
     # Create a temp directory in which we will place all the files to be
-    # deployed after we substitue template parameters in them
+    # deployed after we substitute template parameters in them
     tmp_dir = tempfile.mkdtemp()
     for path, dirs, files in os.walk(root_dir):
         if path.find(".svn") == -1:
