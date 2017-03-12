@@ -43,7 +43,7 @@ echo "RSYNC'ing $HOME/share/yarn-ec2 to other cluster nodes..." > /dev/null
 for node in `cat slaves` ; do
   echo $node > /dev/null
   rsync -e "ssh $SSH_OPTS" -az "$HOME/share/yarn-ec2" \
-      "$node:$HOME" &
+      "$node:$HOME/share" &
   sleep 0.1
 done
 wait
