@@ -661,6 +661,33 @@ def launch_cluster(conn, opts, cluster_name):
     return (master_nodes, slave_nodes)
 
 
+# Reset 2nd ip addresses
+def reassign_cluster_ips(conn, opts, cluster_name):
+    ''' reset cluster ip addresses '''
+    print("Resetting secondary private ip addresses for cluster {c}...".format(c=cluster_name))
+
+    (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name, die_on_error=False)
+
+    for inst in slave_nodes:
+        if inst.state != "terminated" and len(inst.interfaces) != 0:
+            ok = conn.assign_private_ip_addresses(
+                inst.interfaces[0].id,
+                secondary_private_ip_address_count=2,
+                allow_reassignment=True)
+            if not ok:
+                print("Could not reassign secondary ip addresses", file=stderr)
+                sys.exit(1)
+    for inst in master_nodes:
+        if inst.state != "terminated" and len(inst.interfaces) != 0:
+            ok = conn.assign_private_ip_addresses(
+                inst.interfaces[0].id,
+                secondary_private_ip_address_count=2,
+                allow_reassignment=True)
+            if not ok:
+                print("Could not reassign secondary ip addresses", file=stderr)
+                sys.exit(1)
+
+
 # Retrieve an outstanding cluster
 def get_existing_cluster(conn, opts, cluster_name, die_on_error=True):
     """
@@ -1059,6 +1086,11 @@ def real_main():
             cluster_instances=(master_nodes + slave_nodes),
             cluster_state='ssh-ready'
         )
+        reassign_cluster_ips(
+            conn=conn,
+            opts=opts,
+            cluster_name=cluster_name
+        )
 
     elif action == "get-master":
         (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name)
@@ -1108,6 +1140,11 @@ def real_main():
             opts=opts,
             cluster_instances=(master_nodes + slave_nodes),
             cluster_state='ssh-ready'
+        )
+        reassign_cluster_ips(
+            conn=conn,
+            opts=opts,
+            cluster_name=cluster_name
         )
 
         # Determine types of running instances
