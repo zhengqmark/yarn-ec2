@@ -189,19 +189,6 @@ def parse_args():
         default=DEFAULT_YARN_EC2_BRANCH,
         help="Github repo branch of yarn-ec2 to use (default: %default)")
     parser.add_option(
-        "--deploy-root-dir",
-        default=None,
-        help="A directory to copy into / on the first master. " +
-             "Must be absolute. Note that a trailing slash is handled as per rsync: " +
-             "If you omit it, the last directory of the --deploy-root-dir path will be created " +
-             "in / before copying its contents. If you append the trailing slash, " +
-             "the directory is not created and its contents are copied directly into /. " +
-             "(default: %default).")
-    parser.add_option(
-        "--hadoop-major-version", default="1",
-        help="Major version of Hadoop. Valid options are 1 (Hadoop 1.0.4), 2 (CDH 4.2.0), yarn " +
-             "(Hadoop 2.4.0) (default: %default)")
-    parser.add_option(
         "-D", metavar="[ADDRESS:]PORT", dest="proxy_port",
         help="Use SSH dynamic port forwarding to create a SOCKS proxy at " +
              "the given local address (for use with login)")
@@ -232,7 +219,7 @@ def parse_args():
         help="If specified, launch slaves as spot instances with the given " +
              "maximum price (in dollars)")
     parser.add_option(
-        "-u", "--user", default="root",
+        "-u", "--user", default="ubuntu",
         help="The SSH user you want to connect as (default: %default)")
     parser.add_option(
         "--delete-groups", action="store_true", default=False,
@@ -379,6 +366,14 @@ def get_yarn_ami(opts):
     return ami
 
 
+# Init a new security group
+def init_security_group(sg, cidr):
+    sg.authorize(ip_protocol='icmp', from_port=-1, to_port=-1, cidr_ip=cidr)
+
+    sg.authorize('tcp', 0, 65535, cidr)
+    sg.authorize('udp', 0, 65535, cidr)
+
+
 # Launch a cluster of the given name, by setting up its security groups,
 # and then starting new instances in them.
 # Returns a tuple of EC2 reservation objects for the master and slaves
@@ -398,17 +393,13 @@ def launch_cluster(conn, opts, cluster_name):
             user_data_content = user_data_file.read()
 
     print("Setting up security groups...")
-    master_group = get_or_make_group(conn, cluster_name + "-master", opts.vpc_id)
-    slave_group = get_or_make_group(conn, cluster_name + "-slaves", opts.vpc_id)
     authorized_address = opts.authorized_address
+    master_group = get_or_make_group(conn, cluster_name + "-master", opts.vpc_id)
     if master_group.rules == []:  # Group was just now created
-        master_group.authorize('tcp', 0, 65535, authorized_address)
-        master_group.authorize('udp', 0, 65535, authorized_address)
-        master_group.authorize('icmp', -1, -1, authorized_address)
+        init_security_group(master_group, authorized_address)
+    slave_group = get_or_make_group(conn, cluster_name + "-slaves", opts.vpc_id)
     if slave_group.rules == []:  # Group was just now created
-        slave_group.authorize('tcp', 0, 65535, authorized_address)
-        slave_group.authorize('udp', 0, 65535, authorized_address)
-        slave_group.authorize('icmp', -1, -1, authorized_address)
+        init_security_group(slave_group, authorized_address)
 
     # Check if instances are already running in our groups
     existing_masters, existing_slaves = get_existing_cluster(conn, opts, cluster_name,
