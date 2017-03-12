@@ -788,7 +788,7 @@ def wait_for_cluster_state(conn, opts, cluster_instances, cluster_state):
     sys.stdout.write("\n")
 
     end_time = datetime.now()
-    print("Cluster is now in '{s}' state. Waited {t} seconds.".format(
+    print("Cluster is now in '{s}' state\nWaited {t} seconds.".format(
         s=cluster_state,
         t=(end_time - start_time).seconds
     ))
@@ -1073,7 +1073,7 @@ def real_main():
             cluster_name + "?\nDATA ON EPHEMERAL DISKS WILL BE LOST, " +
             "BUT THE CLUSTER WILL KEEP USING SPACE ON\n" +
             "AMAZON EBS IF IT IS EBS-BACKED!!\n" +
-            "All data on spot-instance slaves will be lost.\n" +
+            "ALL DATA ON SPOT-INSTANCES WILL ALSO BE LOST!!\n" +
             "Stop cluster " + cluster_name + " (y/N): ")
         if response == "y":
             (master_nodes, slave_nodes) = get_existing_cluster(
