@@ -139,7 +139,7 @@ def parse_args():
         prog="yarn-ec2",
         version="%prog {v}".format(v=YARN_EC2_VERSION),
         usage="%prog [options] <action> <cluster_name>\n\n"
-              + "<action> can be: launch, destroy, login, stop, start")
+              + "<action> can be: launch, destroy, login, get_master, stop, start")
 
     parser.add_option(
         "-s", "--slaves", type="int", default=1,
@@ -483,7 +483,7 @@ def launch_cluster(conn, opts, cluster_name):
             slave_req_ids += [req.id for req in slave_reqs]
             i += 1
 
-        print("Waiting ...")
+        print("Waiting...")
         try:
             while True:
                 time.sleep(10)
@@ -496,7 +496,7 @@ def launch_cluster(conn, opts, cluster_name):
                     if i in id_to_req and id_to_req[i].state == "active":
                         slave_instance_ids.append(id_to_req[i].instance_id)
                 if len(slave_instance_ids) == opts.slaves:
-                    print("All %d slaves granted" % opts.slaves)
+                    print("%d slaves granted" % opts.slaves)
                     reservations = conn.get_all_reservations(slave_instance_ids)
                     slave_nodes = []
                     for r in reservations:
@@ -538,11 +538,10 @@ def launch_cluster(conn, opts, cluster_name):
                     instance_initiated_shutdown_behavior=opts.instance_initiated_shutdown_behavior,
                     instance_profile_name=opts.instance_profile_name)
                 slave_nodes += slave_res.instances
-                print("Launched {s} slave{plural_s} in {z}, regid = {r}".format(
+                print("Launched {s} slave{plural_s} in {z}".format(
                     s=num_slaves_this_zone,
                     plural_s=('' if num_slaves_this_zone == 1 else 's'),
-                    z=zone,
-                    r=slave_res.id))
+                    z=zone))
             i += 1
 
     # Launch or resume masters
@@ -579,7 +578,7 @@ def launch_cluster(conn, opts, cluster_name):
                 instance_profile_name=opts.instance_profile_name)
             master_req_ids += [req.id for req in master_req]
 
-            print("Waiting ...")
+            print("Waiting...")
             try:
                 while True:
                     time.sleep(10)
@@ -634,11 +633,12 @@ def launch_cluster(conn, opts, cluster_name):
                 instance_initiated_shutdown_behavior=opts.instance_initiated_shutdown_behavior,
                 instance_profile_name=opts.instance_profile_name)
             master_nodes += master_res.instances
-            print("Launched 1 master in {z}, regid = {r}".format(z=master_zone, r=master_res.id))
+            print("Launched 1 master in {z}".format(z=master_zone))
 
     # Timed wait
-    print("Waiting for AWS to propagate instance metadata...")
+    print("Waiting for aws to propagate instance metadata...")
     time.sleep(15)
+    print("OK")
 
     # Give the instances descriptive names and set additional tags
     additional_tags = {}
@@ -1059,6 +1059,71 @@ def real_main():
             cluster_instances=(master_nodes + slave_nodes),
             cluster_state='ssh-ready'
         )
+
+    elif action == "get-master":
+        (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name)
+        if not master_nodes[0].public_dns_name and not opts.private_ips:
+            print("Master has no public DNS name.  Maybe you meant to specify --private-ips?")
+        else:
+            print(get_dns_name(master_nodes[0], opts.private_ips))
+
+    elif action == "stop":
+        response = raw_input(
+            "Are you sure you want to stop the cluster " +
+            cluster_name + "?\nDATA ON EPHEMERAL DISKS WILL BE LOST, " +
+            "BUT THE CLUSTER WILL KEEP USING SPACE ON\n" +
+            "AMAZON EBS IF IT IS EBS-BACKED!!\n" +
+            "All data on spot-instance slaves will be lost.\n" +
+            "Stop cluster " + cluster_name + " (y/N): ")
+        if response == "y":
+            (master_nodes, slave_nodes) = get_existing_cluster(
+                conn, opts, cluster_name, die_on_error=False)
+            print("Stopping master...")
+            for inst in master_nodes:
+                if inst.state not in ["shutting-down", "terminated"]:
+                    if inst.spot_instance_request_id:
+                        inst.terminate()
+                    else:
+                        inst.stop()
+            print("Stopping slaves...")
+            for inst in slave_nodes:
+                if inst.state not in ["shutting-down", "terminated"]:
+                    if inst.spot_instance_request_id:
+                        inst.terminate()
+                    else:
+                        inst.stop()
+
+    elif action == "start":
+        (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name)
+        print("Starting slaves...")
+        for inst in slave_nodes:
+            if inst.state not in ["shutting-down", "terminated"]:
+                inst.start()
+        print("Starting master...")
+        for inst in master_nodes:
+            if inst.state not in ["shutting-down", "terminated"]:
+                inst.start()
+        wait_for_cluster_state(
+            conn=conn,
+            opts=opts,
+            cluster_instances=(master_nodes + slave_nodes),
+            cluster_state='ssh-ready'
+        )
+
+        # Determine types of running instances
+        existing_master_type = master_nodes[0].instance_type
+        existing_slave_type = slave_nodes[0].instance_type
+        # Setting opts.master_instance_type to the empty string indicates we
+        # have the same instance type for the master and the slaves
+        if existing_master_type == existing_slave_type:
+            existing_master_type = ""
+        opts.master_instance_type = existing_master_type
+        opts.instance_type = existing_slave_type
+
+
+    else:
+        print("Invalid action: %s" % action, file=stderr)
+        sys.exit(1)
 
 
 def main():
