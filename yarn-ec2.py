@@ -700,6 +700,100 @@ def get_existing_cluster(conn, opts, cluster_name, die_on_error=True):
     return (master_instances, slave_instances)
 
 
+def is_ssh_available(host, opts, print_ssh_output=True):
+    """
+    Check if SSH is available on a host.
+    """
+    s = subprocess.Popen(
+        ssh_command(opts) + ['-t', '-t', '-o', 'ConnectTimeout=3',
+                             '%s@%s' % (opts.user, host), stringify_command('true')],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT  # we pipe stderr through stdout to preserve output order
+    )
+    cmd_output = s.communicate()[0]  # [1] is stderr, which we redirected to stdout
+
+    if s.returncode != 0 and print_ssh_output:
+        # extra leading newline is for spacing in wait_for_cluster_state()
+        print(textwrap.dedent("""\n
+            Warning: SSH connection error. (This could be temporary.)
+            Host: {h}
+            SSH return code: {r}
+            SSH output: {o}
+        """).format(
+            h=host,
+            r=s.returncode,
+            o=cmd_output.strip()
+        ))
+
+    return s.returncode == 0
+
+
+def is_cluster_ssh_available(cluster_instances, opts):
+    """
+    Check if SSH is available on all the instances in a cluster.
+    """
+    for i in cluster_instances:
+        dns_name = get_dns_name(i, opts.private_ips)
+        if not is_ssh_available(host=dns_name, opts=opts):
+            return False
+    else:
+        return True
+
+
+def wait_for_cluster_state(conn, opts, cluster_instances, cluster_state):
+    """
+    Wait for all the instances in the cluster to reach a designated state.
+
+    cluster_instances: a list of boto.ec2.instance.Instance
+    cluster_state: a string representing the desired state of all the instances in the cluster
+           value can be 'ssh-ready' or a valid value from boto.ec2.instance.InstanceState such as
+           'running', 'terminated', etc.
+           (would be nice to replace this with a proper enum: http://stackoverflow.com/a/1695250)
+    """
+    sys.stdout.write(
+        "Waiting for cluster to enter '{s}' state.".format(s=cluster_state)
+    )
+    sys.stdout.flush()
+
+    start_time = datetime.now()
+    num_attempts = 0
+
+    while True:
+        time.sleep(5 * num_attempts)  # seconds
+
+        for i in cluster_instances:
+            i.update()
+
+        max_batch = 100
+        statuses = []
+        for j in xrange(0, len(cluster_instances), max_batch):
+            batch = [i.id for i in cluster_instances[j:j + max_batch]]
+            statuses.extend(conn.get_all_instance_status(instance_ids=batch))
+
+        if cluster_state == 'ssh-ready':
+            if all(i.state == 'running' for i in cluster_instances) and \
+                    all(s.system_status.status == 'ok' for s in statuses) and \
+                    all(s.instance_status.status == 'ok' for s in statuses) and \
+                    is_cluster_ssh_available(cluster_instances, opts):
+                break
+        else:
+            if all(i.state == cluster_state for i in cluster_instances):
+                break
+
+        num_attempts += 1
+
+        sys.stdout.write(".")
+        sys.stdout.flush()
+
+    sys.stdout.write("\n")
+
+    end_time = datetime.now()
+    print("Cluster is now in '{s}' state. Waited {t} seconds.".format(
+        s=cluster_state,
+        t=(end_time - start_time).seconds
+    ))
+
+
 # Get number of local disks available for a given EC2 instance type.
 def get_num_disks(instance_type):
     # Source: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html
@@ -753,6 +847,92 @@ def get_num_disks(instance_type):
         return 0
 
 
+def stringify_command(parts):
+    if isinstance(parts, str):
+        return parts
+    else:
+        return ' '.join(map(pipes.quote, parts))
+
+
+def ssh_args(opts):
+    parts = []
+
+    parts += ['-o', 'StrictHostKeyChecking=no']
+    parts += ['-o', 'UserKnownHostsFile=/dev/null']
+    if opts.identity_file is not None:
+        parts += ['-i', opts.identity_file]
+    return parts
+
+
+def ssh_command(opts):
+    return ['ssh'] + ssh_args(opts)
+
+
+# Run a command on a host through ssh, retrying up to five times
+# and then throwing an exception if ssh continues to fail.
+def ssh(host, opts, command):
+    tries = 0
+    while True:
+        try:
+            return subprocess.check_call(
+                ssh_command(opts) + ['-t', '-t', '%s@%s' % (opts.user, host),
+                                     stringify_command(command)])
+        except subprocess.CalledProcessError as e:
+            if tries > 5:
+                # If this was an ssh failure, provide the user with hints.
+                if e.returncode == 255:
+                    raise UsageError(
+                        "Failed to SSH to remote host {0}.\n"
+                        "Please check that you have provided the correct --identity-file and "
+                        "--key-pair parameters and try again.".format(host))
+                else:
+                    raise e
+            print("Error executing remote command, retrying after 30 seconds: {0}".format(e),
+                  file=stderr)
+            time.sleep(30)
+            tries = tries + 1
+
+
+# Backported from Python 2.7 for compatiblity with 2.6 (See SPARK-1990)
+def _check_output(*popenargs, **kwargs):
+    if 'stdout' in kwargs:
+        raise ValueError('stdout argument not allowed, it will be overridden.')
+    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+    output, unused_err = process.communicate()
+    retcode = process.poll()
+    if retcode:
+        cmd = kwargs.get("args")
+        if cmd is None:
+            cmd = popenargs[0]
+        raise subprocess.CalledProcessError(retcode, cmd, output=output)
+    return output
+
+
+def ssh_read(host, opts, command):
+    return _check_output(
+        ssh_command(opts) + ['%s@%s' % (opts.user, host), stringify_command(command)])
+
+
+def ssh_write(host, opts, command, arguments):
+    tries = 0
+    while True:
+        proc = subprocess.Popen(
+            ssh_command(opts) + ['%s@%s' % (opts.user, host), stringify_command(command)],
+            stdin=subprocess.PIPE)
+        proc.stdin.write(arguments)
+        proc.stdin.close()
+        status = proc.wait()
+        if status == 0:
+            break
+        elif tries > 5:
+            raise RuntimeError("ssh_write failed with error %s" % proc.returncode)
+        else:
+            print("Error {0} while executing remote command, retrying after 30 seconds".
+                  format(status), file=stderr)
+            time.sleep(30)
+            tries = tries + 1
+
+
 # Gets a list of zones to launch instances in
 def get_zones(conn, opts):
     if opts.zone == 'all':
@@ -768,6 +948,24 @@ def get_partition(total, num_partitions, current_partitions):
     if (total % num_partitions) - current_partitions > 0:
         num_slaves_this_zone += 1
     return num_slaves_this_zone
+
+
+# Gets the IP address, taking into account the --private-ips flag
+def get_ip_address(instance, private_ips=False):
+    ip = instance.ip_address if not private_ips else \
+        instance.private_ip_address
+    return ip
+
+
+# Gets the DNS name, taking into account the --private-ips flag
+def get_dns_name(instance, private_ips=False):
+    dns = instance.public_dns_name if not private_ips else \
+        instance.private_ip_address
+    if not dns:
+        raise UsageError("Failed to determine hostname of {0}.\n"
+                         "Please check that you provided --private-ips if "
+                         "necessary".format(instance))
+    return dns
 
 
 def real_main():
@@ -855,6 +1053,12 @@ def real_main():
             (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name)
         else:
             (master_nodes, slave_nodes) = launch_cluster(conn, opts, cluster_name)
+        wait_for_cluster_state(
+            conn=conn,
+            opts=opts,
+            cluster_instances=(master_nodes + slave_nodes),
+            cluster_state='ssh-ready'
+        )
 
 
 def main():
