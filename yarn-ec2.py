@@ -139,7 +139,7 @@ def parse_args():
         prog="yarn-ec2",
         version="%prog {v}".format(v=YARN_EC2_VERSION),
         usage="%prog [options] <action> <cluster_name>\n\n"
-              + "<action> can be: launch, destroy, login, get_master, stop, start")
+              + "<action> can be: launch, destroy, login, get-master, stop, start")
 
     parser.add_option(
         "-s", "--slaves", type="int", default=1,
