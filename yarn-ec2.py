@@ -1151,14 +1151,6 @@ def real_main():
               "Furthermore, we currently only support forks named yarn-ec2.", file=stderr)
         sys.exit(1)
 
-    if not (opts.deploy_root_dir is None or
-                (os.path.isabs(opts.deploy_root_dir) and
-                     os.path.isdir(opts.deploy_root_dir) and
-                     os.path.exists(opts.deploy_root_dir))):
-        print("--deploy-root-dir must be an absolute path to a directory that exists "
-              "on the local file system", file=stderr)
-        sys.exit(1)
-
     try:
         if opts.profile is None:
             conn = ec2.connect_to_region(opts.region)
