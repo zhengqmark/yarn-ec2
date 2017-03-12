@@ -1143,6 +1143,19 @@ def real_main():
         else:
             print(get_dns_name(master_nodes[0], opts.private_ips))
 
+    elif action == "login":
+        (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name)
+        if not master_nodes[0].public_dns_name and not opts.private_ips:
+            print("Master has no public DNS name.  Maybe you meant to specify --private-ips?")
+        else:
+            master = get_dns_name(master_nodes[0], opts.private_ips)
+            print("Logging into master " + master + "...")
+            proxy_opt = []
+            if opts.proxy_port is not None:
+                proxy_opt = ['-D', opts.proxy_port]
+            subprocess.check_call(
+                ssh_command(opts) + proxy_opt + ['-t', '-t', "%s@%s" % (opts.user, master)])
+
     elif action == "stop":
         response = raw_input(
             "Are you sure you want to stop the cluster " +
