@@ -18,6 +18,8 @@
 # limitations under the License.
 #
 
+exec 1>&2
+
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 

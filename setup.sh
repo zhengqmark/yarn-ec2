@@ -51,8 +51,7 @@ done
 wait
 
 echo "Running setup-slave on all cluster nodes..." > /dev/null
-parallel-ssh --inline \
-    --host "`cat masters` `cat slaves`" \
+parallel-ssh --inline --host "`cat masters` `cat slaves`" \
     --user `whoami` \
     --extra-args "-t -t $SSH_OPTS" \
     --timeout 0 \
