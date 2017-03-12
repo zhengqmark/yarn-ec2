@@ -746,7 +746,7 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
     ssh(
         host=master,
         opts=opts,
-        command="rm -rf yarn-ec2"
+        command="rm -rf ~/share/yarn-ec2"
                 + " && "
                 + "git clone {r} -b {b} ~/share/yarn-ec2".format(
             r=opts.yarn_ec2_git_repo,
