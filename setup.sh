@@ -21,7 +21,7 @@
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y lxc default-jre pssh
+sudo apt-get install -y pssh
 
 # Load the cluster variables set by the deploy script
 if [ -f $HOME/etc/yarn-ec2.rc ] ; then
@@ -38,6 +38,8 @@ echo "Setting up YARN on `hostname`..." > /dev/null
 echo "$MASTERS" > masters
 echo "$SLAVES" > slaves
 
+echo "Setting executable permissions on scripts..." > /dev/null
+find $HOME/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
 
 echo "RSYNC'ing $HOME/share/yarn-ec2 to other cluster nodes..." > /dev/null
 for node in `cat slaves` ; do
@@ -50,11 +52,11 @@ wait
 
 echo "Running setup-slave on all cluster nodes..." > /dev/null
 parallel-ssh --inline \
-    --host "`cat slaves`" \
+    --host "`cat masters` `cat slaves`" \
     --user `whoami` \
     --extra-args "-t -t $SSH_OPTS" \
     --timeout 0 \
-    "$HOME/share/yarn-ec2/setup-slave.sh"
+    "$HOME/share/yarn-ec2/rack-setup.sh"
 
 popd > /dev/null
 

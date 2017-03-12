@@ -770,8 +770,6 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
 
 def setup_spark_cluster(master, opts):
     ssh(master, opts, "chmod u+x ~/share/yarn-ec2/setup.sh")
-    ssh(master, opts, "chmod u+x ~/share/yarn-ec2/slave-setup.sh")
-
     ssh(master, opts, "~/share/yarn-ec2/setup.sh")
 
 
