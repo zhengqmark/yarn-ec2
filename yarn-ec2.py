@@ -664,7 +664,7 @@ def launch_cluster(conn, opts, cluster_name):
 # Reset 2nd ip addresses
 def reassign_cluster_ips(conn, opts, cluster_name):
     ''' reset cluster ip addresses '''
-    print("Resetting secondary private ip addresses for cluster {c}...".format(c=cluster_name))
+    print("Reassigning secondary ip addresses...")
 
     (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name, die_on_error=False)
 
@@ -686,6 +686,9 @@ def reassign_cluster_ips(conn, opts, cluster_name):
             if not ok:
                 print("Could not reassign secondary ip addresses", file=stderr)
                 sys.exit(1)
+
+    count = len(master_nodes) + len(slave_nodes)
+    print("{c} instances reassigned".format(c=count))
 
 
 # Retrieve an outstanding cluster
@@ -778,7 +781,7 @@ def wait_for_cluster_state(conn, opts, cluster_instances, cluster_state):
            (would be nice to replace this with a proper enum: http://stackoverflow.com/a/1695250)
     """
     sys.stdout.write(
-        "Waiting for cluster to enter '{s}' state.".format(s=cluster_state)
+        "Waiting for cluster to enter '{s}' state...".format(s=cluster_state)
     )
     sys.stdout.flush()
 
