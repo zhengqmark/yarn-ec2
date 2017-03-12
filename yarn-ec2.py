@@ -31,7 +31,6 @@ import pipes
 import random
 import shutil
 import string
-from stat import S_IRUSR
 import subprocess
 import sys
 import tarfile
@@ -41,6 +40,7 @@ import time
 import warnings
 from datetime import datetime
 from optparse import OptionParser
+from stat import S_IRUSR
 from sys import stderr
 
 if sys.version < "3":
@@ -124,10 +124,10 @@ external_libs = [
 
 setup_external_libs(external_libs)
 
-import boto
 from boto.ec2.blockdevicemapping import BlockDeviceMapping, BlockDeviceType, EBSBlockDeviceType
 from boto import ec2
 
+import boto
 
 class UsageError(Exception):
     pass
@@ -662,11 +662,9 @@ def launch_cluster(conn, opts, cluster_name):
 
 
 # Reset 2nd ip addresses
-def reassign_cluster_ips(conn, opts, cluster_name):
+def reassign_cluster_ips(conn, master_nodes, slave_nodes, opts, cluster_name):
     ''' reset cluster ip addresses '''
     print("Reassigning secondary ip addresses...")
-
-    (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name, die_on_error=False)
 
     for inst in slave_nodes:
         if inst.state != "terminated" and len(inst.interfaces) != 0:
@@ -688,7 +686,7 @@ def reassign_cluster_ips(conn, opts, cluster_name):
                 sys.exit(1)
 
     count = len(master_nodes) + len(slave_nodes)
-    print("{c} instances reassigned".format(c=count))
+    print("{c} instances ip reassigned".format(c=count))
 
 
 # Retrieve an outstanding cluster
@@ -818,7 +816,7 @@ def wait_for_cluster_state(conn, opts, cluster_instances, cluster_state):
     sys.stdout.write("\n")
 
     end_time = datetime.now()
-    print("Cluster is now in '{s}' state\nWaited {t} seconds.".format(
+    print("Cluster is now in '{s}' state\nWaited {t} seconds".format(
         s=cluster_state,
         t=(end_time - start_time).seconds
     ))
@@ -1091,6 +1089,8 @@ def real_main():
         )
         reassign_cluster_ips(
             conn=conn,
+            master_nodes=master_nodes,
+            slave_nodes=slave_nodes,
             opts=opts,
             cluster_name=cluster_name
         )
@@ -1146,6 +1146,8 @@ def real_main():
         )
         reassign_cluster_ips(
             conn=conn,
+            master_nodes=master_nodes,
+            slave_nodes=slave_nodes,
             opts=opts,
             cluster_name=cluster_name
         )
