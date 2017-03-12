@@ -17,6 +17,6 @@
 # limitations under the License.
 #
 
-# These variables are automatically filled in by the spark-ec2 script.
+# These variables are automatically filled in during deployment
 export MASTERS="{{master_list}}"
 export SLAVES="{{slave_list}}"
