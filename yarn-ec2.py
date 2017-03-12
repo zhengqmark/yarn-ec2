@@ -632,6 +632,30 @@ def launch_cluster(conn, opts, cluster_name):
             master_nodes += master_res.instances
             print("Launched 1 master in {z}, regid = {r}".format(z=master_zone, r=master_res.id))
 
+    # Timed wait
+    print("Waiting for AWS to propagate instance metadata...")
+    time.sleep(15)
+
+    # Give the instances descriptive names and set additional tags
+    additional_tags = {}
+    if opts.additional_tags.strip():
+        additional_tags = dict(
+            map(str.strip, tag.split(':', 1)) for tag in opts.additional_tags.split(',')
+        )
+
+    for master in master_nodes:
+        master.add_tags(
+            dict(additional_tags, Name='{cn}-master-{iid}'.format(cn=cluster_name, iid=master.id))
+        )
+
+    for slave in slave_nodes:
+        slave.add_tags(
+            dict(additional_tags, Name='{cn}-slave-{iid}'.format(cn=cluster_name, iid=slave.id))
+        )
+
+    # Return all the instances
+    return (master_nodes, slave_nodes)
+
 
 # Retrieve an outstanding cluster
 def get_existing_cluster(conn, opts, cluster_name, die_on_error=True):
