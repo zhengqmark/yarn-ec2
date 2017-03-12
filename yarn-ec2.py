@@ -732,6 +732,45 @@ def get_existing_cluster(conn, opts, cluster_name, die_on_error=True):
     return (master_instances, slave_instances)
 
 
+# Deploy configuration files and run setup scripts on a newly launched or started cluster.
+def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
+    master = get_dns_name(master_nodes[0], opts.private_ips)
+    if deploy_ssh_key:
+        print("Generating cluster's SSH key on master...")
+        key_setup = """
+          [ -f ~/.ssh/id_rsa ] ||
+            (ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa &&
+             cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys)
+        """
+        ssh(master, opts, key_setup)
+        dot_ssh_tar = ssh_read(master, opts, ['tar', 'c', '.ssh'])
+        print("Transferring cluster's SSH key to slaves...")
+        for slave in slave_nodes:
+            slave_address = get_dns_name(slave, opts.private_ips)
+            print(slave_address)
+            ssh_write(
+                host=slave_address,
+                opts=opts,
+                command=['tar', 'x'],
+                arguments=dot_ssh_tar
+            )
+
+    print("Cloning yarn-ec2 scripts from {r}/tree/{b} on master...".format(
+        r=opts.yarn_ec2_git_repo, b=opts.yarn_ec2_git_branch))
+    ssh(
+        host=master,
+        opts=opts,
+        command="rm -rf yarn-ec2"
+                + " && "
+                + "git clone {r} -b {b} yarn-ec2".format(
+            r=opts.yarn_ec2_git_repo,
+            b=opts.yarn_ec2_git_branch
+        )
+    )
+
+    print("Done!")
+
+
 def is_ssh_available(host, opts, print_ssh_output=True):
     """
     Check if SSH is available on a host.
@@ -1098,6 +1137,13 @@ def real_main():
             opts=opts,
             cluster_name=cluster_name
         )
+        setup_cluster(
+            conn=conn,
+            master_nodes=master_nodes,
+            slave_nodes=slave_nodes,
+            opts=opts,
+            deploy_ssh_key=True
+        )
 
     elif action == "get-master":
         (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name)
@@ -1154,6 +1200,13 @@ def real_main():
             slave_nodes=slave_nodes,
             opts=opts,
             cluster_name=cluster_name
+        )
+        setup_cluster(
+            conn=conn,
+            master_nodes=master_nodes,
+            slave_nodes=slave_nodes,
+            opts=opts,
+            deploy_ssh_key=True
         )
 
         # Determine types of running instances
