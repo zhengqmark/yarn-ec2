@@ -205,6 +205,10 @@ def parse_args():
         help="Use SSH dynamic port forwarding to create a SOCKS proxy at " +
              "the given local address (for use with login)")
     parser.add_option(
+        "--resume", action="store_true", default=False,
+        help="Resume installation on a previously launched cluster " +
+             "(for debugging)")
+    parser.add_option(
         "--ebs-vol-size", metavar="SIZE", type="int", default=0,
         help="Size (in GB) of each EBS volume.")
     parser.add_option(
@@ -847,8 +851,10 @@ def real_main():
         if opts.slaves <= 0:
             print("ERROR: You have to start at least 1 slave", file=sys.stderr)
             sys.exit(1)
-
-        launch_cluster(conn, opts, cluster_name)
+        if opts.resume:
+            (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name)
+        else:
+            (master_nodes, slave_nodes) = launch_cluster(conn, opts, cluster_name)
 
 
 def main():
