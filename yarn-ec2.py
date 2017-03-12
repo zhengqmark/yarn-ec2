@@ -753,7 +753,7 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
         opts=opts,
         command="rm -rf yarn-ec2"
                 + " && "
-                + "git clone {r} -b {b} yarn-ec2".format(
+                + "git clone {r} -b {b} share/yarn-ec2".format(
             r=opts.yarn_ec2_git_repo,
             b=opts.yarn_ec2_git_branch
         )
@@ -774,8 +774,8 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
 
 
 def setup_spark_cluster(master, opts):
-    ssh(master, opts, "chmod u+x yarn-ec2/setup.sh")
-    ssh(master, opts, "yarn-ec2/setup.sh")
+    ssh(master, opts, "chmod u+x share/yarn-ec2/setup.sh")
+    ssh(master, opts, "share/yarn-ec2/setup.sh")
 
 
 def is_ssh_available(host, opts, print_ssh_output=True):
@@ -967,7 +967,7 @@ def deploy_files(conn, root_dir, opts, master_nodes, slave_nodes):
         'rsync', '-rv',
         '-e', stringify_command(ssh_command(opts)),
         "%s/" % tmp_dir,
-        "%s@%s:/" % (opts.user, active_master)
+        "%s@%s:~" % (opts.user, active_master)
     ]
     subprocess.check_call(command)
     # Remove the temp directory we created above
