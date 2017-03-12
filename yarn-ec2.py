@@ -458,7 +458,7 @@ def launch_cluster(conn, opts, cluster_name):
     # Launch slaves
     if opts.spot_price is not None:
         # Launch spot instances with the requested price
-        print("Requesting %d slaves as spot instances with price $%.3f" %
+        print("Requesting %d slaves at $%.3f per hour" %
               (opts.slaves, opts.spot_price))
         zones = get_zones(conn, opts)
         num_zones = len(zones)
@@ -483,7 +483,7 @@ def launch_cluster(conn, opts, cluster_name):
             slave_req_ids += [req.id for req in slave_reqs]
             i += 1
 
-        print("Waiting for spot instances to be granted...")
+        print("Waiting ...")
         try:
             while True:
                 time.sleep(10)
@@ -555,7 +555,7 @@ def launch_cluster(conn, opts, cluster_name):
     else:
         if opts.spot_price is not None:
             # Launch spot instances with the requested price
-            print("Requesting the master as a spot instance with price $%.3f" % opts.spot_price)
+            print("Requesting 1 master at $%.3f per hour" % opts.spot_price)
             master_type = opts.master_instance_type
             if master_type == "":
                 master_type = opts.instance_type
@@ -579,7 +579,7 @@ def launch_cluster(conn, opts, cluster_name):
                 instance_profile_name=opts.instance_profile_name)
             master_req_ids += [req.id for req in master_req]
 
-            print("Waiting for the master spot instance to be granted...")
+            print("Waiting ...")
             try:
                 while True:
                     time.sleep(10)
