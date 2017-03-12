@@ -49,7 +49,7 @@ done
 wait
 
 echo "Running setup-slave on all cluster nodes..." > /dev/null
-pssh --inline \
+parallel-ssh --inline \
     --host "`cat slaves`" \
     --user `whoami` \
     --extra-args "-t -t $SSH_OPTS" \
