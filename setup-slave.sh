@@ -47,14 +47,14 @@ sudo ip addr show dev $DEV
 
 sudo df -h
 
-DISKS=`lsblk -ln | fgrep -v part | fgrep -v da | cut -d' ' -f1`
+DISKS=`lsblk -ln | fgrep -v part | fgrep -v lvm | fgrep -v da | cut -d' ' -f1`
 echo "$DISKS" | awk '{print "/dev/" $0}' > my_disks
 NUM_DISKS=`cat my_disks | wc -l`
 
 sudo lsblk
-sudo umount -f /mnt > /dev/null
+sudo umount -f /mnt &>/dev/null
 if [ -f /dev/yarn-vg/yarn-lv ] ; then
-    sudo umount -f /dev/yarn-vg/yarn-lv > /dev/null
+    sudo umount -f /dev/yarn-vg/yarn-lv &>/dev/null
     sudo lvremove -f /dev/yarn-vg/yarn-lv
 fi
 if [ -f /dev/yarn-vg ] ; then
