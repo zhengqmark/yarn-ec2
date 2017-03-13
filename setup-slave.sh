@@ -54,6 +54,7 @@ sudo ip addr show dev $DEV
 sudo service lxc stop
 sudo service lxc-net stop
 sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
+sudo cp -f $HOME/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templates/
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/default/* /etc/default/
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
 sudo service lxc-net start
@@ -65,8 +66,8 @@ XFS_MOUNT_OPTS="defaults,noatime,nodiratime,allocsize=8m"
 DISKS=`lsblk -ln | fgrep -v part | fgrep -v lvm | fgrep -v da | cut -d' ' -f1`
 echo "$DISKS" | awk '{print "/dev/" $0}' > my_disks
 NUM_DISKS=`cat my_disks | wc -l`
-LV_NAME="yarn-lv"
-VG_NAME="yarn-vg"
+LV_NAME="lxclv0"
+VG_NAME="lxcvg0"
 LV="/dev/$VG_NAME/$LV_NAME"
 VG="/dev/$VG_NAME"
 
@@ -86,14 +87,13 @@ if [ $NUM_DISKS -gt 0 ] ; then
     sudo vgcreate -y $VG_NAME \
         `cat my_disks | paste -sd ' ' -` || exit 1
     sudo lvcreate -y -Wy -Zy -l 100%FREE -n $LV_NAME $VG_NAME || exit 1
-    sleep 3
+    sleep 0.1
     if [ -e $LV ] ; then
         sudo mkfs.xfs -f $LV || exit 1
         sudo mount -o $XFS_MOUNT_OPTS $LV /mnt || exit 1
     fi
 fi
 sudo rm -rf /mnt/*
-sudo chmod 777 /mnt
 sudo lsblk
 
 sudo df -h
