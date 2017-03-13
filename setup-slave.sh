@@ -23,7 +23,7 @@ exec 1>&2
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y curl vim realpath lxc lvm2 xfsprogs
+sudo apt-get install -y curl vim realpath lxc lvm2 xfsprogs tree
 
 mkdir -p $HOME/var/yarn-ec2
 
@@ -35,6 +35,9 @@ MAC=`curl http://169.254.169.254/latest/meta-data/mac`
 CIDR=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/subnet-ipv4-cidr-block`
 PRIVATE_IPS=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/local-ipv4s`
 echo "$PRIVATE_IPS" > my_ips
+OFFSET=`cat all-nodes | fgrep -n $PRIMARY_IP | cut -d: -f1`
+ID=$(( OFFSET - 1 ))
+echo "$ID" > my_id
 
 MASK=`echo $CIDR | cut -d/ -f2`
 DEV=`ls -1 /sys/class/net/ | fgrep -v lxc | fgrep -v lo | head -1`
