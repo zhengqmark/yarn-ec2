@@ -1140,7 +1140,10 @@ def get_partition(total, num_partitions, current_partitions):
 
 # Gets a list of secondary ip addresses
 def get_secondary_ip_addresses(instance):
-    return [addr.private_ip_address for addr in instance.interfaces.private_ip_addresses if not addr.primary]
+    if len(instance.interfaces) != 0:
+        return [addr.private_ip_address for addr in instance.interfaces[0].private_ip_addresses if not addr.primary]
+    else:
+        return []
 
 
 # Gets the IP address, taking into account the --private-ips flag
