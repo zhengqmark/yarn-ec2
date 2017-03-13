@@ -18,8 +18,6 @@
 # limitations under the License.
 #
 
-exec 1>&2
-
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
@@ -44,7 +42,7 @@ for ip in `echo $PRIVATE_IPS | grep -v $PRIMARY_IP` ; do
     sudo up addr add ${ip}/$MASK brd + dev $DEV
 done
 
-sudp ip addr show dev $DEV
+sudo ip addr show dev $DEV
 
 popd > /dev/null
 
