@@ -46,9 +46,9 @@ function setup_rack() {
 ### @param rack_id, rack_ips ###
     mkdir -p "rack-$1"
     VMINFO=`cat "$HOME/etc/yarn-topo.txt" | fgrep "rack-$1"`
-    CAP=`cat $VMINFO | cut -d' ' -f2`
-    cat $VMINFO | cut -d' ' -f4 > "rack-$1/vmcpus"
-    cat $VMINFO | cut -d' ' -f3 > "rack-$1/vmmem"
+    CAP=`echo $VMINFO | cut -d' ' -f2`
+    echo $VMINFO | cut -d' ' -f4 > "rack-$1/vmcpus"
+    echo $VMINFO | cut -d' ' -f3 > "rack-$1/vmmem"
     echo "$2" | head -n $CAP > "rack-$1/vmips"
 }
 
