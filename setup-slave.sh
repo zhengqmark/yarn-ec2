@@ -47,9 +47,9 @@ sudo ip addr show dev $DEV
 
 sudo service lxc stop
 sudo service lxc-net stop
-rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
+sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/default/* /etc/default/
-sudp cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
+sudo cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
 sudo service lxc-net start
 sudo service lxc start
 
