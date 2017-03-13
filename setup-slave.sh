@@ -71,6 +71,7 @@ if [ $NUM_DISKS -gt 0 ] ; then
     sudo vgcreate -y $VG_NAME \
         `cat my_disks | paste -sd ' ' -` || exit 1
     sudo lvcreate -y -Wy -Zy -l 100%FREE -n $LV_NAME $VG_NAME || exit 1
+    sleep 3
     if [ -f $LV ] ; then
         sudo mkfs.xfs -f $LV || exit 1
         sudo mount $LV /mnt || exit 1
