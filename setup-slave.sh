@@ -28,6 +28,7 @@ sudo apt-get install -y curl vim realpath lxc lvm2 xfsprogs
 pushd $HOME > /dev/null
 
 PRIMARY_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+echo "$PRIMARY_IP" > my_primary_ip
 MAC=`curl http://169.254.169.254/latest/meta-data/mac`
 CIDR=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/subnet-ipv4-cidr-block`
 PRIVATE_IPS=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/local-ipv4s`

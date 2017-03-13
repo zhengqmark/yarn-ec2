@@ -20,3 +20,9 @@
 # These variables are automatically filled in during deployment
 export MASTERS="{{master_list}}"
 export SLAVES="{{slave_list}}"
+
+export RACK0="{{rack0}}"
+export RACK1="{{rack1}}"
+export RACK2="{{rack2}}"
+export RACK3="{{rack3}}"
+export RACK4="{{rack4}}"

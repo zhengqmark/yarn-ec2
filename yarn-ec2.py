@@ -993,7 +993,15 @@ def deploy_files(conn, root_dir, opts, master_nodes, slave_nodes):
     template_vars = {
         "master_list": '\n'.join(master_addresses),
         "slave_list": '\n'.join(slave_addresses),
+        "rack0": '\n'.join(get_secondary_ip_addresses(master_nodes[0])),
+        "rack1": '',
+        "rack2": '',
+        "rack3": '',
+        "rack4": '',
     }
+
+    for i in xrange(0, len(slave_nodes)):
+        template_vars['rack' + str(i)] = '\n'.join(get_secondary_ip_addresses(slave_nodes[i]))
 
     # Create a temp directory in which we will place all the files to be
     # deployed after we substitute template parameters in them
@@ -1128,6 +1136,11 @@ def get_partition(total, num_partitions, current_partitions):
     if (total % num_partitions) - current_partitions > 0:
         num_slaves_this_zone += 1
     return num_slaves_this_zone
+
+
+# Gets a list of secondary ip addresses
+def get_secondary_ip_addresses(instance):
+    return [addr.private_ip_address for addr in instance.interfaces.private_ip_addresses if not addr.primary]
 
 
 # Gets the IP address, taking into account the --private-ips flag
