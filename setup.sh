@@ -38,6 +38,8 @@ echo "Setting up YARN on `hostname`..." > /dev/null
 echo "$MASTERS" > masters
 echo "$SLAVES" > slaves
 
+cat masters slaves > nodes
+
 echo "Setting executable permissions on scripts..." > /dev/null
 find $HOME/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
 
@@ -51,11 +53,11 @@ done
 wait
 
 echo "Running setup-slave on all cluster nodes..." > /dev/null
-parallel-ssh --inline --host "`cat masters` `cat slaves`" \
+parallel-ssh --print --host "`cat nodes`" \
     --user `whoami` \
     --extra-args "-t -t $SSH_OPTS" \
     --timeout 0 \
-    "$HOME/share/yarn-ec2/rack-setup.sh"
+    "$HOME/share/yarn-ec2/setup-slave.sh"
 
 popd > /dev/null
 

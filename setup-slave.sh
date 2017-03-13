@@ -23,6 +23,29 @@ exec 1>&2
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y lxc default-jre
+sudo apt-get install -y curl vim realpath
+
+pushd $HOME > /dev/null
+
+PRIMARY_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+MAC=`curl http://169.254.169.254/latest/meta-data/mac`
+CIDR=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/subnet-ipv4-cidr-block`
+PRIVATE_IPS=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/local-ipv4s`
+
+MASK=`echo $CIDR | cut -d/ -f2`
+
+DEV=`ls -1 /sys/class/net/ | fgrep -v lxc | fgrep -v lo`
+
+sudo ip addr show dev $DEV
+
+sudo ip addr flush secondary $DEV
+
+for ip in `echo $PRIVATE_IPS | grep -v $PRIMARY_IP` ; do
+    sudo up addr add ${ip}/$MASK brd + dev $DEV
+done
+
+sudp ip addr show dev $DEV
+
+popd > /dev/null
 
 exit 0
