@@ -61,7 +61,7 @@ if [ -f /dev/yarn-vg ] ; then
     sudo vgremove -f /dev/yarn-vg
 fi
 if [ $NUM_DISKS -gt 0 ] ; then
-    for dev in `cat my_disks` ; do sudo pvcreate -f -y $dev || exit 1 ; done
+    for dev in `cat my_disks` ; do sudo pvcreate -ff -y $dev || exit 1 ; done
     sudo vgcreate -y yarn-vg `cat my_disks | paste -sd ' ' -` || exit 1
     sudo lvcreate -l 100%FREE -n yarn-lv yarn-vg || exit 1
     sudo mkfs.xfs -f /dev/yarn-vg/yarn-lv || exit 1
