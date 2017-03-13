@@ -35,19 +35,14 @@ export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
 PDSH="pdsh -R ssh"
 
 echo "Setting up YARN on `hostname`..." > /dev/null
-
 # Set up the masters, slaves, etc files based on cluster env variables
 echo "$MASTERS" > masters
 echo "$SLAVES" > slaves
-
 cat masters slaves > all-nodes
 
 echo "Setting executable permissions on scripts..." > /dev/null
-
 find $HOME/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
-
 echo "RSYNC'ing $HOME/share/yarn-ec2 to other cluster nodes..." > /dev/null
-
 for node in `cat slaves` ; do
   echo $node > /dev/null
   rsync -e "ssh $SSH_OPTS" -az "$HOME/share/yarn-ec2" \
@@ -58,7 +53,6 @@ done
 wait
 
 echo "Running setup-slave on all cluster nodes..." > /dev/null
-
 $PDSH -w ^all-nodes "$HOME/share/yarn-ec2/setup-slave.sh"
 
 popd > /dev/null
