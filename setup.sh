@@ -21,7 +21,7 @@
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y pssh
+sudo apt-get install -y pdsh
 
 # Load the cluster variables set by the deploy script
 if [ -f $HOME/etc/yarn-ec2.rc ] ; then
@@ -31,6 +31,8 @@ fi
 pushd $HOME > /dev/null
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
+export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
+PDSH="pdsh -R ssh"
 
 echo "Setting up YARN on `hostname`..." > /dev/null
 
@@ -38,26 +40,26 @@ echo "Setting up YARN on `hostname`..." > /dev/null
 echo "$MASTERS" > masters
 echo "$SLAVES" > slaves
 
-cat masters slaves > nodes
+cat masters slaves > all-nodes
 
 echo "Setting executable permissions on scripts..." > /dev/null
+
 find $HOME/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
 
 echo "RSYNC'ing $HOME/share/yarn-ec2 to other cluster nodes..." > /dev/null
+
 for node in `cat slaves` ; do
   echo $node > /dev/null
   rsync -e "ssh $SSH_OPTS" -az "$HOME/share/yarn-ec2" \
       "$node:$HOME/share" &
   sleep 0.1
 done
+
 wait
 
 echo "Running setup-slave on all cluster nodes..." > /dev/null
-parallel-ssh --print --host "`cat nodes`" \
-    --user `whoami` \
-    --extra-args "-t -t $SSH_OPTS" \
-    --timeout 0 \
-    "$HOME/share/yarn-ec2/setup-slave.sh"
+
+$PDSH -w ^all-nodes "$HOME/share/yarn-ec2/setup-slave.sh"
 
 popd > /dev/null
 

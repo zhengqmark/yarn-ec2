@@ -18,6 +18,8 @@
 # limitations under the License.
 #
 
+exec 1>&2
+
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
@@ -32,14 +34,14 @@ PRIVATE_IPS=`curl http://169.254.169.254/latest/meta-data/network/interfaces/mac
 
 MASK=`echo $CIDR | cut -d/ -f2`
 
-DEV=`ls -1 /sys/class/net/ | fgrep -v lxc | fgrep -v lo`
+DEV=`ls -1 /sys/class/net/ | fgrep -v lxc | fgrep -v lo | head -1`
 
 sudo ip addr show dev $DEV
 
 sudo ip addr flush secondary $DEV
 
 for ip in `echo $PRIVATE_IPS | grep -v $PRIMARY_IP` ; do
-    sudo up addr add ${ip}/$MASK brd + dev $DEV
+    sudo ip addr add ${ip}/$MASK brd + dev $DEV
 done
 
 sudo ip addr show dev $DEV
