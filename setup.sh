@@ -60,7 +60,7 @@ setup_rack 4 "$RACK4"
 
 echo "Setting executable permissions on scripts..." > /dev/null
 find $HOME/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
-echo "RSYNC'ing $HOME/share/yarn-ec2 to other cluster nodes..." > /dev/null
+echo "RSYNC'ing bootstrapping data to other cluster nodes..." > /dev/null
 for node in `cat slaves` ; do
     echo $node > /dev/null
     rsync -e "ssh $SSH_OPTS" -az "$HOME/share/yarn-ec2" \

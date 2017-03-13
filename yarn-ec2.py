@@ -1001,7 +1001,7 @@ def deploy_files(conn, root_dir, opts, master_nodes, slave_nodes):
     }
 
     for i in xrange(0, len(slave_nodes)):
-        template_vars['rack' + str(i)] = '\n'.join(get_secondary_ip_addresses(slave_nodes[i]))
+        template_vars['rack' + str(i + 1)] = '\n'.join(get_secondary_ip_addresses(slave_nodes[i]))
 
     # Create a temp directory in which we will place all the files to be
     # deployed after we substitute template parameters in them

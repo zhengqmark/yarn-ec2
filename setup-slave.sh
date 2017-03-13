@@ -25,7 +25,9 @@ sudo apt-get update && sudo apt-get -y upgrade
 
 sudo apt-get install -y curl vim realpath lxc lvm2 xfsprogs
 
-pushd $HOME > /dev/null
+mkdir -p $HOME/var/yarn-ec2
+
+pushd $HOME/var/yarn-ec2 > /dev/null
 
 PRIMARY_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
 echo "$PRIMARY_IP" > my_primary_ip
