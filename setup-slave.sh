@@ -50,22 +50,31 @@ sudo df -h
 DISKS=`lsblk -ln | fgrep -v part | fgrep -v lvm | fgrep -v da | cut -d' ' -f1`
 echo "$DISKS" | awk '{print "/dev/" $0}' > my_disks
 NUM_DISKS=`cat my_disks | wc -l`
+LV_NAME="yarn-lv"
+VG_NAME="yarn-vg"
+LV="/dev/$VG_NAME/$LV_NAME"
+VG="/dev/$VG_NAME"
 
 sudo lsblk
 sudo umount -f /mnt &>/dev/null
-if [ -f /dev/yarn-vg/yarn-lv ] ; then
-    sudo umount -f /dev/yarn-vg/yarn-lv &>/dev/null
-    sudo lvremove -f /dev/yarn-vg/yarn-lv
+if [ -f $LV ] ; then
+    sudo umount -f $LV &>/dev/null
+    sudo lvremove -f $LV
 fi
-if [ -f /dev/yarn-vg ] ; then
-    sudo vgremove -f /dev/yarn-vg
+if [ -d $VG ] ; then
+    sudo vgremove -f $VG
 fi
 if [ $NUM_DISKS -gt 0 ] ; then
-    for dev in `cat my_disks` ; do sudo pvcreate -ff -y $dev || exit 1 ; done
-    sudo vgcreate -y yarn-vg `cat my_disks | paste -sd ' ' -` || exit 1
-    sudo lvcreate -l 100%FREE -n yarn-lv yarn-vg || exit 1
-    sudo mkfs.xfs -f /dev/yarn-vg/yarn-lv || exit 1
-    sudo mount /dev/yarn-vg/yarn-lv /mnt || exit 1
+    for dev in `cat my_disks` ; do
+        sudo pvcreate -ff -y $dev || exit 1
+    done
+    sudo vgcreate -y $VG_NAME \
+        `cat my_disks | paste -sd ' ' -` || exit 1
+    sudo lvcreate -y -Wy -Zy -l 100%FREE -n $LV_NAME $VG_NAME || exit 1
+    if [ -f $LV ] ; then
+        sudo mkfs.xfs -f $LV || exit 1
+        sudo mount $LV /mnt || exit 1
+    fi
 fi
 sudo lsblk
 
