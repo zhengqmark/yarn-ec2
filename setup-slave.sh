@@ -57,11 +57,11 @@ VG="/dev/$VG_NAME"
 
 sudo lsblk
 sudo umount -f /mnt &>/dev/null
-if [ -f $LV ] ; then
+if [ -e $LV ] ; then
     sudo umount -f $LV &>/dev/null
     sudo lvremove -f $LV
 fi
-if [ -d $VG ] ; then
+if [ -e $VG ] ; then
     sudo vgremove -f $VG
 fi
 if [ $NUM_DISKS -gt 0 ] ; then
@@ -72,7 +72,7 @@ if [ $NUM_DISKS -gt 0 ] ; then
         `cat my_disks | paste -sd ' ' -` || exit 1
     sudo lvcreate -y -Wy -Zy -l 100%FREE -n $LV_NAME $VG_NAME || exit 1
     sleep 3
-    if [ -f $LV ] ; then
+    if [ -e $LV ] ; then
         sudo mkfs.xfs -f $LV || exit 1
         sudo mount $LV /mnt || exit 1
     fi
