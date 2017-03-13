@@ -664,20 +664,21 @@ def reassign_cluster_ips(conn, master_nodes, slave_nodes, opts, cluster_name):
     for inst in master_nodes + slave_nodes:
         if inst.state != "terminated" and len(inst.interfaces) != 0:
             nif = inst.interfaces[0]
-            succ = True
-            for addr in nif.private_ip_addresses:
-                if not addr.primary:
-                    succ = conn.unassign_private_ip_addresses(nif.id, addr.private_ip_address)
-                    if not succ:
-                        break
-            succ = conn.assign_private_ip_addresses(
-                nif.id, secondary_private_ip_address_count=opts.secondary_ips,
-                allow_reassignment=False) if succ else False
-            if not succ:
-                print("Could not reassign secondary ip addresses", file=stderr)
-                sys.exit(1)
-            else:
-                nif.update(conn)
+            if len(nif.private_ip_addresses) != opts.secondary_ips + 1:
+                succ = True
+                for addr in nif.private_ip_addresses:
+                    if not addr.primary:
+                        succ = conn.unassign_private_ip_addresses(nif.id, addr.private_ip_address)
+                        if not succ:
+                            break
+                succ = conn.assign_private_ip_addresses(
+                    nif.id, secondary_private_ip_address_count=opts.secondary_ips,
+                    allow_reassignment=False) if succ else False
+                if not succ:
+                    print("Could not reassign secondary ip addresses", file=stderr)
+                    sys.exit(1)
+                else:
+                    nif.update(conn)
 
     print("OK")
 
