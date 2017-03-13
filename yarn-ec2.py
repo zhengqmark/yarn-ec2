@@ -156,7 +156,7 @@ def parse_args():
         help="If you have multiple profiles (AWS or boto config), you can configure " +
              "additional, named profiles by using this option (default: %default)")
     parser.add_option(
-        "-t", "--instance-type", default="c3.large",
+        "-t", "--instance-type", default="c3.4xlarge",
         help="Type of instance to launch (default: %default). " +
              "WARNING: must be 64-bit; small instances won't work")
     parser.add_option(
@@ -246,6 +246,9 @@ def parse_args():
     parser.add_option(
         "--vpc-id", default=None,
         help="VPC to launch instances in")
+    parser.add_option(
+        "--secondary-ips", type="int", default=6,
+        help="Num of secondary private ip addresses to assign for each cluster node")
     parser.add_option(
         "--private-ips", action="store_true", default=False,
         help="Use private IPs for instances rather than public if VPC/subnet " +
@@ -402,8 +405,8 @@ def launch_cluster(conn, opts, cluster_name):
         init_security_group(slave_group, authorized_address)
 
     # Check if instances are already running in our groups
-    existing_masters, existing_slaves = get_existing_cluster(conn, opts, cluster_name,
-                                                             die_on_error=False)
+    existing_masters, existing_slaves = get_existing_cluster(
+        conn, opts, cluster_name, die_on_error=False)
     if existing_slaves or (existing_masters and not opts.use_existing_master):
         print("ERROR: There are already instances running in group %s or %s" %
               (master_group.name, slave_group.name), file=stderr)
@@ -668,7 +671,7 @@ def reassign_cluster_ips(conn, master_nodes, slave_nodes, opts, cluster_name):
                     if not succ:
                         break
             succ = conn.assign_private_ip_addresses(
-                nif.id, secondary_private_ip_address_count=2,
+                nif.id, secondary_private_ip_address_count=opts.secondary_ips,
                 allow_reassignment=False) if succ else False
             if not succ:
                 print("Could not reassign secondary ip addresses", file=stderr)
@@ -867,6 +870,59 @@ def wait_for_cluster_state(conn, opts, cluster_instances, cluster_state):
     ))
 
 
+# Get number of ip addresses available per nic for a given EC2 instance type.
+def get_nic_width(instance_type):
+    # Source: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
+    # Last Updated: 2017-03-11
+    # For easy maintainability, please keep this manually-inputted dictionary sorted by key.
+    nic_ips_by_instance = {
+        "c3.large": "10",
+        "c3.xlarge": "15",
+        "c3.2xlarge": "15",
+        "c3.4xlarge": "30",
+        "c3.8xlarge": "30",
+        "c4.large": "10",
+        "c4.xlarge": "15",
+        "c4.2xlarge": "15",
+        "c4.4xlarge": "30",
+        "c4.8xlarge": "30",
+        "m3.medium": "6",
+        "m3.large": "10",
+        "m3.xlarge": "15",
+        "m3.2xlarge": "30",
+        "m4.large": "10",
+        "m4.xlarge": "15",
+        "m4.2xlarge": "15",
+        "m4.4xlarge": "30",
+        "m4.10xlarge": "30",
+        "m4.16xlarge": "30",
+        "r3.large": "10",
+        "r3.xlarge": "15",
+        "r3.2xlarge": "15",
+        "r3.4xlarge": "30",
+        "r3.8xlarge": "30",
+        "r4.large": "10",
+        "r4.xlarge": "15",
+        "r4.2xlarge": "15",
+        "r4.4xlarge": "30",
+        "r4.8xlarge": "30",
+        "r4.16xlarge": "50",
+        "t2.nano": "2",
+        "t2.micro": "2",
+        "t2.small": "4",
+        "t2.medium": "6",
+        "t2.large": "12",
+        "t2.xlarge": "15",
+        "t2.2xlarge": "15",
+    }
+    if instance_type in nic_ips_by_instance:
+        return int(nic_ips_by_instance[instance_type])
+    else:
+        print("WARNING: Don't know the max number of ips per nic on instance type %s; assuming 2"
+              % instance_type, file=stderr)
+        return 2
+
+
 # Get number of local disks available for a given EC2 instance type.
 def get_num_disks(instance_type):
     # Source: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html
@@ -915,7 +971,7 @@ def get_num_disks(instance_type):
     if instance_type in disks_by_instance:
         return int(disks_by_instance[instance_type])
     else:
-        print("WARNING: Don't know number of disks on instance type %s; assuming 0"
+        print("WARNING: Don't know the number of disks on instance type %s; assuming 0"
               % instance_type, file=stderr)
         return 0
 
@@ -1133,6 +1189,17 @@ def real_main():
                 print("slave instance virtualization type: {t}".format(
                     t=EC2_INSTANCE_TYPES[opts.instance_type]), file=stderr)
                 sys.exit(1)
+
+    if opts.secondary_ips + 1 > get_nic_width(opts.instance_type):
+        print("Error: unable to allocate {c} secondary ip addresses for instance-type: {t}".format(
+            c=opts.secondary_ips, t=opts.instance_type))
+        sys.exit(1)
+
+    if opts.master_instance_type != "":
+        if opts.secondary_ips + 1 > get_nic_width(opts.master_instance_type):
+            print("Error: unable to allocate {c} secondary ip addresses for master-instance-type: {t}".format(
+                c=opts.secondary_ips, t=opts.master_instance_type))
+            sys.exit(1)
 
     if opts.ebs_vol_num > 8:
         print("ebs-vol-num cannot be greater than 8", file=stderr)
