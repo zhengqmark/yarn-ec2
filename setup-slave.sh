@@ -23,7 +23,7 @@ exec 1>&2
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y curl vim realpath lxc lvm2
+sudo apt-get install -y curl vim realpath lxc lvm2 xfsprogs
 
 pushd $HOME > /dev/null
 
@@ -47,6 +47,7 @@ sudo ip addr show dev $DEV
 
 sudo df -h
 
+XFS_MOUNT_OPTS="defaults,noatime,nodiratime,allocsize=8m"
 DISKS=`lsblk -ln | fgrep -v part | fgrep -v lvm | fgrep -v da | cut -d' ' -f1`
 echo "$DISKS" | awk '{print "/dev/" $0}' > my_disks
 NUM_DISKS=`cat my_disks | wc -l`
@@ -74,9 +75,11 @@ if [ $NUM_DISKS -gt 0 ] ; then
     sleep 3
     if [ -e $LV ] ; then
         sudo mkfs.xfs -f $LV || exit 1
-        sudo mount $LV /mnt || exit 1
+        sudo mount -o $XFS_MOUNT_OPTS $LV /mnt || exit 1
     fi
 fi
+sudo rm -rf /mnt/*
+sudo chmod 777 /mnt
 sudo lsblk
 
 sudo df -h
