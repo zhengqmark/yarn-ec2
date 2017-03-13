@@ -28,7 +28,9 @@ if [ -f $HOME/etc/yarn-ec2.rc ] ; then
     source $HOME/etc/yarn-ec2.rc
 fi
 
-pushd $HOME > /dev/null
+mkdir -p $HOME/var/yarn-ec2
+
+pushd $HOME/var/yarn-ec2 > /dev/null
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
 export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
@@ -40,14 +42,33 @@ echo "$MASTERS" > masters
 echo "$SLAVES" > slaves
 cat masters slaves > all-nodes
 
+function setup_rack() {
+### @param rack_id, rack_ips ###
+    mkdir -p "rack-$1"
+    VMINFO=`cat "$HOME/etc/yarn-topo.txt" | fgrep "rack-$1"`
+    CAP=`cat $VMINFO | cut -d' ' -f2`
+    cat $VMINFO | cut -d' ' -f4 > "rack-$1/vmcpus"
+    cat $VMINFO | cut -d' ' -f3 > "rack-$1/vmmem"
+    echo "$2" | head -n $CAP > "rack-$1/vmips"
+}
+
+setup_rack 0 "$RACK0"
+setup_rack 1 "$RACK1"
+setup_rack 2 "$RACK2"
+setup_rack 3 "$RACK3"
+setup_rack 4 "$RACK4"
+
 echo "Setting executable permissions on scripts..." > /dev/null
 find $HOME/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
 echo "RSYNC'ing $HOME/share/yarn-ec2 to other cluster nodes..." > /dev/null
 for node in `cat slaves` ; do
-  echo $node > /dev/null
-  rsync -e "ssh $SSH_OPTS" -az "$HOME/share/yarn-ec2" \
-      "$node:$HOME/share" &
-  sleep 0.1
+    echo $node > /dev/null
+    rsync -e "ssh $SSH_OPTS" -az "$HOME/share/yarn-ec2" \
+        "$node:$HOME/share" &
+    sleep 0.1
+    rsync -e "ssh $SSH_OPTS" -az "$HOME/var/yarn-ec2" \
+        "$node:$HOME/var" &
+    sleep 0.1
 done
 
 wait

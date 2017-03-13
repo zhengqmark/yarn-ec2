@@ -1,0 +1,5 @@
+rack-0 1 2G 2
+rack-1 2 1G 1
+rack-2 2 1G 1
+rack-3 2 1G 1
+rack-4 2 1G 1
