@@ -102,6 +102,7 @@ iface lo inet loopback
 
 auto eth0
 iface eth0 inet manual
+dns-nameservers 192.168.1.1
 EOF
 
     # set the hostname

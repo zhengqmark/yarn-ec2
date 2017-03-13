@@ -23,11 +23,19 @@ exec 1>&2
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y curl vim realpath lxc lvm2 xfsprogs tree
+sudo apt-get install -y curl vim realpath lxc lvm2 xfsprogs tree htop
 
 mkdir -p $HOME/var/yarn-ec2
 
 pushd $HOME/var/yarn-ec2 > /dev/null
+
+for vm in `sudo lxc-ls` ; do
+    sudo lxc-stop -k -n $vm && sudo lxc-destroy -f -n $vm
+    sleep 0.1
+done
+sudo service lxc stop
+sudo service lxc-net stop
+sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
 
 PRIMARY_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
 echo "$PRIMARY_IP" > my_primary_ip
@@ -51,16 +59,19 @@ for ipv4 in `cat my_ips` ; do
 done
 sudo ip addr show dev $DEV
 
-sudo service lxc stop
-sudo service lxc-net stop
-sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
-sudo cp -f $HOME/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templates/
-sudo cp -f $HOME/share/yarn-ec2/lxc/etc/default/* /etc/default/
-sudo cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
-sudo service lxc-net start
-sudo service lxc start
+cat <<EOF > /etc/hosts
+127.0.0.1   localhost
 
-sudo df -h
+4.4.4.4 mashiro
+8.8.8.8 ibuki
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+EOF
 
 XFS_MOUNT_OPTS="defaults,noatime,nodiratime,allocsize=8m"
 DISKS=`lsblk -ln | fgrep -v part | fgrep -v lvm | fgrep -v da | cut -d' ' -f1`
@@ -97,6 +108,40 @@ sudo rm -rf /mnt/*
 sudo lsblk
 
 sudo df -h
+
+NUM_CPUS=`cat /proc/cpuinfo | fgrep proc | wc -l`
+echo "$NUM_CPUS" > my_ncpus
+
+sudo cp -f $HOME/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templates/
+sudo cp -f $HOME/share/yarn-ec2/lxc/etc/default/* /etc/default/
+sudo cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
+sudo service lxc-net start
+sudo service lxc start
+
+function create_vm() {
+### @param rack_id, host_id, ip, mem, ncpus ###
+    vm_name=`echo r"$1"h"$2"`
+    sudo lxc-create -n $vm_name -t ubuntu -- --packges \
+        "vim,curl,wget,git,default-jre"
+    sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
+        /mnt/$vm_name/config
+    sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
+        /mnt/$vm_name/config
+    sudo sed -i "/lxc.cgroup.memory.limit_in_bytes =/c lxc.cgroup.memory.limit_in_bytes = $4" \
+        /mnt/$vm_name/config
+    core_begin=$(( "$2" * "$5" ))
+    core_end=$(( core_begin + "$5" - 1 ))
+    cpus=`echo "$core_begin"-"$core_end"`
+    sudo sed -i "/lxc.cgroup.cpuset.cpus =/c lxc.cgroup.cpuset.cpus = $cpus" \
+        /mnt/$vm_name/config
+}
+
+RACK_ID="$ID"
+HOST_ID=0
+for ip in `cat rack-$ID/vmips` ; do
+    create_vm $RACK_ID $HOST_ID $ip "`cat rack-$ID/vmmem`" "`cat rack-$ID/vmncpus`"
+    HOST_ID=$(( HOST_ID + 1 ))
+done
 
 popd > /dev/null
 
