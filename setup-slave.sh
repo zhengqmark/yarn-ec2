@@ -91,9 +91,9 @@ function maybe_umount_path() { ### @param fspath ###
 }
 
 sudo lsblk
-sudo maybe_umount_path /mnt &>/dev/null
+maybe_umount_path /mnt &>/dev/null
 if [ -e $LV ] ; then
-    sudo maybe_umount_path $LV &>/dev/null
+    maybe_umount_path $LV &>/dev/null
     sudo lvremove -f $LV
 fi
 if [ -e $VG ] ; then
