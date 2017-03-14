@@ -53,6 +53,7 @@ function setup_rack() {
     H=0
     CAP=`echo $VMINFO | cut -d' ' -f2`
     echo "$2" | head -n $CAP > $RACKDIR/vmips
+    echo `cat all-nodes | head -n $(( $1 + 1 )) | tail -n 1` r"$1" >> hosts
     for ip in `cat $RACKDIR/vmips` ; do
         echo $ip r"$1"h"$H" >> hosts
         H=$(( H + 1 ))
