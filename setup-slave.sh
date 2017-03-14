@@ -59,7 +59,7 @@ for ipv4 in `cat my_ips` ; do
 done
 sudo ip addr show dev $DEV
 
-cat <<EOF > /etc/hosts
+cat <<EOF | sudo tee /etc/hosts
 127.0.0.1   localhost
 
 4.4.4.4 mashiro
@@ -75,7 +75,7 @@ ff02::2 ip6-allrouters
 
 EOF
 
-cat hosts >> /etc/hosts
+cat hosts | sudo tee -a /etc/hosts
 
 XFS_MOUNT_OPTS="defaults,noatime,nodiratime,allocsize=8m"
 DISKS=`lsblk -ln | fgrep -v part | fgrep -v lvm | fgrep -v da | cut -d' ' -f1`
