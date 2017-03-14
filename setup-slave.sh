@@ -29,9 +29,8 @@ mkdir -p $HOME/var/yarn-ec2
 
 pushd $HOME/var/yarn-ec2 > /dev/null
 
-function maybe_stop_vm() { ### vm_name ###
+function maybe_stop_vm() { ### @param vm_name ###
     sudo lxc-stop -k -n $1 || echo "OK"
-    sleep 0.1
 }
 
 for vm in `sudo lxc-ls` ; do
@@ -131,12 +130,13 @@ sudo cp -f $HOME/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templat
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/default/* /etc/default/
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
 sudo service lxc-net start
+sudo iptables -t nat -F  ### will use our own rules ###
 sudo service lxc start
 
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
-    sudo lxc-create -n $VM_NAME -t ubuntu ### -- --packages "sysbench" ###
+    sudo lxc-create -S ~/.ssh/id_rsa.pub -n $VM_NAME -t ubuntu ### -- --packages "sysbench" ###
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
@@ -148,6 +148,7 @@ function create_vm() {
     VM_CPUS=`echo "$core_begin"-"$core_end"`
     sudo sed -i "/lxc.cgroup.cpuset.cpus =/c lxc.cgroup.cpuset.cpus = $VM_CPUS" \
         /mnt/$VM_NAME/config
+    sudo lxc-start -n $VM_NAME
 }
 
 RACK_ID="$ID"
@@ -155,10 +156,14 @@ HOST_ID=0
 for ip in `cat rack-$ID/vmips` ; do
     NODE_ID=$(( HOST_ID + 10 ))
     sudo sed -i "s/$ip/192.168.1.$NODE_ID/" /etc/hosts
+    sudo iptables -t nat -A PREROUTING -s $CIDR -d $ip -j DNAT --to 192.168.1.$NODE_ID
+    sudo iptables -t nat -A POSTROUTING -s 192.168.1.$NODE_ID -d $CIDR -j SNAT --to $ip
     create_vm $RACK_ID $HOST_ID "192.168.1.$NODE_ID/24 192.168.1.255" \
         "`cat rack-$ID/vmmem`" "`cat rack-$ID/vmncpus`"
     HOST_ID=$(( HOST_ID + 1 ))
 done
+
+sudo iptables -t nat -L -n
 
 popd > /dev/null
 
