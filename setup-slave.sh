@@ -129,7 +129,7 @@ sudo service lxc start
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
-    sudo lxc-create -n $VM_NAME -t ubuntu -- --packges \
+    sudo lxc-create -n $VM_NAME -t ubuntu -- --packages \
         "vim,curl,wget,git,default-jre,sysbench"
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config

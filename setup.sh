@@ -34,7 +34,7 @@ pushd $HOME/var/yarn-ec2 > /dev/null
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
 export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
-PDSH="pdsh -R ssh"
+PDSH="pdsh -S -R ssh"
 
 echo "Setting up YARN on `hostname`..." > /dev/null
 # Set up the masters, slaves, etc files based on cluster env variables
