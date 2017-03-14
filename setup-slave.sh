@@ -136,7 +136,8 @@ sudo service lxc start
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
-    sudo lxc-create -S ~/.ssh/id_rsa.pub -n $VM_NAME -t ubuntu ### -- --packages "sysbench" ###
+    sudo lxc-create -n $VM_NAME -t ubuntu -- \
+        --auth-key ~/.ssh/id_rsa.pub ### --packages "sysbench" ###
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
