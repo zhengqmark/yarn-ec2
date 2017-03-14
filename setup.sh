@@ -61,11 +61,11 @@ function setup_rack() {
     done
 }
 
-[ $NRACKS -gt 1 ] && setup_rack 0 "$RACK0"
-[ $NRACKS -gt 2 ] && setup_rack 1 "$RACK1"
-[ $NRACKS -gt 3 ] && setup_rack 2 "$RACK2"
-[ $NRACKS -gt 4 ] && setup_rack 3 "$RACK3"
-[ $NRACKS -gt 5 ] && setup_rack 4 "$RACK4"
+[ $NRACKS -gt 0 ] && setup_rack 0 "$RACK0"
+[ $NRACKS -gt 1 ] && setup_rack 1 "$RACK1"
+[ $NRACKS -gt 2 ] && setup_rack 2 "$RACK2"
+[ $NRACKS -gt 3 ] && setup_rack 3 "$RACK3"
+[ $NRACKS -gt 4 ] && setup_rack 4 "$RACK4"
 
 echo "Setting executable permissions on scripts..." > /dev/null
 find $HOME/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
