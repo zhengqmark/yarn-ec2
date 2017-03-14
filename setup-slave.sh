@@ -129,15 +129,15 @@ sudo service lxc start
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
-    sudo lxc-create -n $VM_NAME -t ubuntu -- --packages "sysbench"
+    sudo lxc-create -n $VM_NAME -t ubuntu ### -- --packages "sysbench" ###
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.limit_in_bytes =/c lxc.cgroup.memory.limit_in_bytes = $4" \
         /mnt/$VM_NAME/config
-    core_begin=$(( "$2" * "$5" ))
-    core_end=$(( core_begin + "$5" - 1 ))
+    core_begin=$(( $2 * $5 ))
+    core_end=$(( core_begin + $5 - 1 ))
     VM_CPUS=`echo "$core_begin"-"$core_end"`
     sudo sed -i "/lxc.cgroup.cpuset.cpus =/c lxc.cgroup.cpuset.cpus = $VM_CPUS" \
         /mnt/$VM_NAME/config
