@@ -29,10 +29,17 @@ mkdir -p $HOME/var/yarn-ec2
 
 pushd $HOME/var/yarn-ec2 > /dev/null
 
+function maybe_stop_vm() { ### vm_name ###
+    sudo lxc-stop -k -n $1 || echo "OK"
+    sleep 0.1
+}
+
 for vm in `sudo lxc-ls` ; do
-    sudo lxc-stop -k -n $vm && sudo lxc-destroy -f -n $vm
+    maybe_stop_vm $vm &>/dev/null
+    sudo lxc-destroy -f -n $vm
     sleep 0.1
 done
+
 sudo service lxc stop
 sudo service lxc-net stop
 sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
