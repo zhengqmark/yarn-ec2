@@ -86,15 +86,14 @@ VG_NAME="lxcvg0"
 LV="/dev/$VG_NAME/$LV_NAME"
 VG="/dev/$VG_NAME"
 
-function ensure_umount() {
-### @param fspath ###
+function maybe_umount_path() { ### @param fspath ###
     sudo umount -f $1 || echo "OK"
 }
 
 sudo lsblk
-sudo ensure_umount /mnt &>/dev/null
+sudo maybe_umount_path /mnt &>/dev/null
 if [ -e $LV ] ; then
-    sudo ensure_umount $LV &>/dev/null
+    sudo maybe_umount_path $LV &>/dev/null
     sudo lvremove -f $LV
 fi
 if [ -e $VG ] ; then
@@ -131,7 +130,7 @@ function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
     sudo lxc-create -n $VM_NAME -t ubuntu -- --packges \
-        "vim,curl,wget,git,default-jre"
+        "vim,curl,wget,git,default-jre,sysbench"
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
@@ -148,8 +147,8 @@ function create_vm() {
 RACK_ID="$ID"
 HOST_ID=0
 for ip in `cat rack-$ID/vmips` ; do
-    NET_ID=$(( HOST_ID + 10 ))
-    create_vm $RACK_ID $HOST_ID "192.168.1.$NET_ID/24 192.168.1.255" \
+    NODE_ID=$(( HOST_ID + 10 ))
+    create_vm $RACK_ID $HOST_ID "192.168.1.$NODE_ID/24 192.168.1.255" \
         "`cat rack-$ID/vmmem`" "`cat rack-$ID/vmncpus`"
     HOST_ID=$(( HOST_ID + 1 ))
 done
