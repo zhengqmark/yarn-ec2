@@ -28,7 +28,7 @@ if [ -f $HOME/etc/yarn-ec2.rc ] ; then
     source $HOME/etc/yarn-ec2.rc
 fi
 
-mkdir -p $HOME/var/yarn-ec2
+mkdir -p $HOME/var/yarn-ec2 && rm -rf $HOME/var/yarn-ec2/*
 
 pushd $HOME/var/yarn-ec2 > /dev/null
 
