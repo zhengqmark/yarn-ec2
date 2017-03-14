@@ -41,15 +41,22 @@ echo "Setting up YARN on `hostname`..." > /dev/null
 echo "$MASTERS" > masters
 echo "$SLAVES" > slaves
 cat masters slaves > all-nodes
+rm -f hosts
 
 function setup_rack() {
 ### @param rack_id, rack_ips ###
-    mkdir -p "rack-$1"
-    VMINFO=`cat "$HOME/etc/yarn-topo.txt" | fgrep "rack-$1"`
+    RACKDIR=`echo rack-"$1"`
+    mkdir -p $RACKDIR
+    VMINFO=`cat $HOME/etc/yarn-topo.txt | fgrep $RACKDIR`
+    echo $VMINFO | cut -d' ' -f4 > $RACKDIR/vmncpus
+    echo $VMINFO | cut -d' ' -f3 > $RACKDIR/vmmem
+    H=0
     CAP=`echo $VMINFO | cut -d' ' -f2`
-    echo $VMINFO | cut -d' ' -f4 > "rack-$1/vmncpus"
-    echo $VMINFO | cut -d' ' -f3 > "rack-$1/vmmem"
-    echo "$2" | head -n $CAP > "rack-$1/vmips"
+    echo "$2" | head -n $CAP > $RACKDIR/vmips
+    for ip in `cat $RACKDIR/vmips` ; do
+        echo $ip r"$1"h"$H" >> hosts
+        H=$(( H + 1 ))
+    done
 }
 
 setup_rack 0 "$RACK0"
@@ -63,11 +70,11 @@ find $HOME/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
 echo "RSYNC'ing packages to other cluster nodes..." > /dev/null
 for node in `cat slaves` ; do
     echo $node > /dev/null
-    rsync -e "ssh $SSH_OPTS" -az "$HOME/share/yarn-ec2" \
-        "$node:$HOME/share" &
+    rsync -e "ssh $SSH_OPTS" -az $HOME/share/yarn-ec2 \
+        $node:$HOME/share &
     sleep 0.1
-    rsync -e "ssh $SSH_OPTS" -az "$HOME/var/yarn-ec2" \
-        "$node:$HOME/var" &
+    rsync -e "ssh $SSH_OPTS" -az $HOME/var/yarn-ec2 \
+        $node:$HOME/var &
     sleep 0.1
 done
 

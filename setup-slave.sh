@@ -1,4 +1,4 @@
-#!/bin/bash -xu
+#!/bin/bash -xue
 
 #
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -51,10 +51,10 @@ MASK=`echo $CIDR | cut -d/ -f2`
 DEV=`ls -1 /sys/class/net/ | fgrep -v lxc | fgrep -v lo | head -1`
 
 sudo ip addr show dev $DEV
-sudo ip addr flush secondary dev $DEV || exit 1
+sudo ip addr flush secondary dev $DEV
 for ipv4 in `cat my_ips` ; do
     if [ x"$ipv4" != x"$PRIMARY_IP" ] ; then
-        sudo ip addr add "$ipv4/$MASK" brd + dev $DEV || exit 1
+        sudo ip addr add $ipv4/$MASK brd + dev $DEV
     fi
 done
 sudo ip addr show dev $DEV
@@ -71,7 +71,11 @@ fe00::0 ip6-localnet
 ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
+
+
 EOF
+
+cat hosts >> /etc/hosts
 
 XFS_MOUNT_OPTS="defaults,noatime,nodiratime,allocsize=8m"
 DISKS=`lsblk -ln | fgrep -v part | fgrep -v lvm | fgrep -v da | cut -d' ' -f1`
@@ -82,10 +86,15 @@ VG_NAME="lxcvg0"
 LV="/dev/$VG_NAME/$LV_NAME"
 VG="/dev/$VG_NAME"
 
+function ensure_umount() {
+### @param fspath ###
+    sudo umount -f $1 || echo "OK"
+}
+
 sudo lsblk
-sudo umount -f /mnt &>/dev/null
+sudo ensure_umount /mnt &>/dev/null
 if [ -e $LV ] ; then
-    sudo umount -f $LV &>/dev/null
+    sudo ensure_umount $LV &>/dev/null
     sudo lvremove -f $LV
 fi
 if [ -e $VG ] ; then
@@ -93,15 +102,15 @@ if [ -e $VG ] ; then
 fi
 if [ $NUM_DISKS -gt 0 ] ; then
     for dev in `cat my_disks` ; do
-        sudo pvcreate -ff -y $dev || exit 1
+        sudo pvcreate -ff -y $dev
     done
-    sudo vgcreate -y $VG_NAME \
-        `cat my_disks | paste -sd ' ' -` || exit 1
-    sudo lvcreate -y -Wy -Zy -l 100%FREE -n $LV_NAME $VG_NAME || exit 1
+    sudo vgcreate -y $VG_NAME `cat my_disks | paste -sd ' ' -`
+    sudo lvcreate -y -Wy -Zy -l 100%FREE \
+        -n $LV_NAME $VG_NAME
     sleep 0.1
     if [ -e $LV ] ; then
-        sudo mkfs.xfs -f $LV || exit 1
-        sudo mount -o $XFS_MOUNT_OPTS $LV /mnt || exit 1
+        sudo mkfs.xfs -f $LV
+        sudo mount -o $XFS_MOUNT_OPTS $LV /mnt
     fi
 fi
 sudo rm -rf /mnt/*
@@ -120,26 +129,28 @@ sudo service lxc start
 
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
-    vm_name=`echo r"$1"h"$2"`
-    sudo lxc-create -n $vm_name -t ubuntu -- --packges \
+    VM_NAME=`echo r"$1"h"$2"`
+    sudo lxc-create -n $VM_NAME -t ubuntu -- --packges \
         "vim,curl,wget,git,default-jre"
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
-        /mnt/$vm_name/config
+        /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
-        /mnt/$vm_name/config
+        /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.limit_in_bytes =/c lxc.cgroup.memory.limit_in_bytes = $4" \
-        /mnt/$vm_name/config
+        /mnt/$VM_NAME/config
     core_begin=$(( "$2" * "$5" ))
     core_end=$(( core_begin + "$5" - 1 ))
-    cpus=`echo "$core_begin"-"$core_end"`
-    sudo sed -i "/lxc.cgroup.cpuset.cpus =/c lxc.cgroup.cpuset.cpus = $cpus" \
-        /mnt/$vm_name/config
+    VM_CPUS=`echo "$core_begin"-"$core_end"`
+    sudo sed -i "/lxc.cgroup.cpuset.cpus =/c lxc.cgroup.cpuset.cpus = $VM_CPUS" \
+        /mnt/$VM_NAME/config
 }
 
 RACK_ID="$ID"
 HOST_ID=0
 for ip in `cat rack-$ID/vmips` ; do
-    create_vm $RACK_ID $HOST_ID $ip "`cat rack-$ID/vmmem`" "`cat rack-$ID/vmncpus`"
+    NET_ID=$(( HOST_ID + 10 ))
+    create_vm $RACK_ID $HOST_ID "192.168.1.$NET_ID/24 192.168.1.255" \
+        "`cat rack-$ID/vmmem`" "`cat rack-$ID/vmncpus`"
     HOST_ID=$(( HOST_ID + 1 ))
 done
 
