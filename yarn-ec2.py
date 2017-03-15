@@ -729,7 +729,7 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
         print("Generating cluster's SSH key on master...")
         key_setup = """
           [ -f ~/.ssh/id_rsa ] ||
-            (ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa &&
+            (ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa -C ibuki &&
              cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys)
         """
         ssh(master, opts, key_setup)

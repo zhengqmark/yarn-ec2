@@ -47,6 +47,7 @@ PRIMARY_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
 echo "$PRIMARY_IP" > my_primary_ip
 MAC=`curl http://169.254.169.254/latest/meta-data/mac`
 CIDR=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/subnet-ipv4-cidr-block`
+echo "$CIDR" > my_cidr
 PRIVATE_IPS=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/local-ipv4s`
 echo "$PRIVATE_IPS" > my_ips
 OFFSET=`cat all-nodes | fgrep -n $PRIMARY_IP | cut -d: -f1`
@@ -82,6 +83,19 @@ ff02::2 ip6-allrouters
 EOF
 
 cat hosts | sudo tee -a /etc/hosts
+
+cat <<EOF | sudo tee /etc/ssh/ssh_config
+Host *
+    PasswordAuthentication no
+    HashKnownHosts no
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking no
+    GSSAPIAuthentication yes
+    GSSAPIDelegateCredentials no
+    SendEnv LANG LC_*
+
+
+EOF
 
 XFS_MOUNT_OPTS="defaults,noatime,nodiratime,allocsize=8m"
 DISKS=`lsblk -ln | fgrep -v part | fgrep -v lvm | fgrep -v da | cut -d' ' -f1`
@@ -129,15 +143,14 @@ echo "$NUM_CPUS" > my_ncpus
 sudo cp -f $HOME/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templates/
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/default/* /etc/default/
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
-sudo service lxc-net start
-sudo iptables -t nat -F  ### will use our own rules ###
-sudo service lxc start
 
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
     sudo lxc-create -n $VM_NAME -t ubuntu -- \
         --auth-key ~/.ssh/id_rsa.pub ### --packages "sysbench" ###
+    sudo cp -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/
+    sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
@@ -149,7 +162,6 @@ function create_vm() {
     VM_CPUS=`echo "$core_begin"-"$core_end"`
     sudo sed -i "/lxc.cgroup.cpuset.cpus =/c lxc.cgroup.cpuset.cpus = $VM_CPUS" \
         /mnt/$VM_NAME/config
-    sudo lxc-start -n $VM_NAME
 }
 
 RACK_ID="$ID"
@@ -157,14 +169,16 @@ HOST_ID=0
 for ip in `cat rack-$ID/vmips` ; do
     NODE_ID=$(( HOST_ID + 10 ))
     sudo sed -i "s/$ip/192.168.1.$NODE_ID/" /etc/hosts
-    sudo iptables -t nat -A PREROUTING -s $CIDR -d $ip -j DNAT --to 192.168.1.$NODE_ID
-    sudo iptables -t nat -A POSTROUTING -s 192.168.1.$NODE_ID -d $CIDR -j SNAT --to $ip
     create_vm $RACK_ID $HOST_ID "192.168.1.$NODE_ID/24 192.168.1.255" \
         "`cat rack-$ID/vmmem`" "`cat rack-$ID/vmncpus`"
     HOST_ID=$(( HOST_ID + 1 ))
 done
 
+sudo service lxc-net start
+sudo iptables -t nat -F  ### will use our own rules ###
 sudo iptables -t nat -L -n
+sudo service lxc start
+sudo lxc-ls -f
 
 popd > /dev/null
 
