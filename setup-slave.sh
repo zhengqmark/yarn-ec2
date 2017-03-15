@@ -167,7 +167,7 @@ function create_vm() {
 RACK_ID="$ID"
 HOST_ID=0
 for ip in `cat rack-$ID/vmips` ; do
-    NODE_ID=$(( HOST_ID + 10 ))
+    NODE_ID=$(( HOST_ID + RACK_ID * 10 + 100))
     sudo sed -i "s/$ip/192.168.1.$NODE_ID/" /etc/hosts
     create_vm $RACK_ID $HOST_ID "192.168.1.$NODE_ID/24 192.168.1.255" \
         "`cat rack-$ID/vmmem`" "`cat rack-$ID/vmncpus`"
