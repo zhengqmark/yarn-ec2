@@ -32,6 +32,8 @@ mkdir -p $HOME/var/yarn-ec2 && rm -rf $HOME/var/yarn-ec2/*
 
 pushd $HOME/var/yarn-ec2 > /dev/null
 
+mkdir -p $HOME/tmp
+
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
 export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
 PDSH="pdsh -S -R ssh -b"
@@ -84,7 +86,7 @@ wait
 
 echo "Running setup-slave on all cluster nodes..." > /dev/null
 $PDSH -w ^all-nodes $HOME/share/yarn-ec2/setup-slave.sh \
-    2>&1 | tee /tmp/setup-slaves.log
+    2>&1 | tee $HOME/tmp/setup-slaves.log
 
 popd > /dev/null
 
