@@ -83,6 +83,9 @@ ff02::2 ip6-allrouters
 EOF
 
 cat hosts | sudo tee -a /etc/hosts
+HOSTNAME=`echo r"$ID"`
+echo $HOSTNAME | sudo tee /etc/hostname
+sudo hostname $HOSTNAME
 
 cat <<EOF | sudo tee /etc/ssh/ssh_config
 Host *

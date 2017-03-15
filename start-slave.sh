@@ -48,6 +48,8 @@ for ip in `cat rack-$ID/vmips` ; do
     HOST_ID=$(( HOST_ID + 1 ))
 done
 
+sudo iptables -t nat -A POSTROUTING -s 192.168.1.0/24 ! -d 192.168.1.0/24 \
+    -j SNAT --to `cat my_primary_ip`
 sudo iptables -t nat -L -n
 sudo lxc-ls -f
 
