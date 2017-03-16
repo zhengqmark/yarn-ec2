@@ -18,6 +18,8 @@
 # limitations under the License.
 #
 
+set -euxo pipefail
+
 exec 1>&2
 
 pushd $HOME/var/yarn-ec2 > /dev/null

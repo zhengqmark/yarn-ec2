@@ -1,4 +1,4 @@
-#!/bin/bash -xue
+#!/bin/bash
 
 #
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -17,6 +17,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+set -euxo pipefail
+
+exec 1>&2
 
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
@@ -87,9 +91,8 @@ wait
 echo "Setting up cluster nodes..." > /dev/null
 $PDSH -w ^all-nodes $HOME/share/yarn-ec2/setup-slave.sh \
     2>&1 | tee $HOME/tmp/setup-slaves.log
-
-echo "Starting vms..." > /dev/null
-$HOME/share/yarn-ec2/start.sh
+$PDSH -w ^all-nodes $HOME/share/yarn-ec2/start-slave.sh \
+    2>&1 | tee $HOME/tmp/start-slaves.log
 
 popd > /dev/null
 
