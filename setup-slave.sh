@@ -155,8 +155,8 @@ function create_vm() {
     sudo lxc-create -n $VM_NAME -t ubuntu -- \
         --auth-key ~/.ssh/id_rsa.pub ### --packages "sysbench" ###
     sudo cp -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/
-    sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_ras.pub
-    sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_ras
+    sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa.pub
+    sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
