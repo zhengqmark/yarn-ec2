@@ -84,9 +84,12 @@ done
 
 wait
 
-echo "Running setup-slave on all cluster nodes..." > /dev/null
+echo "Setting up cluster nodes..." > /dev/null
 $PDSH -w ^all-nodes $HOME/share/yarn-ec2/setup-slave.sh \
     2>&1 | tee $HOME/tmp/setup-slaves.log
+
+echo "Starting vms..." > /dev/null
+$HOME/share/yarn-ec2/start.sh
 
 popd > /dev/null
 
