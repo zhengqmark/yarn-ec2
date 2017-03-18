@@ -25,7 +25,8 @@ exec 1>&2
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y curl vim realpath lxc lvm2 xfsprogs tree htop
+sudo apt-get install -y wget curl vim git realpath tree htop sysbench \
+    lxc lvm2 xfsprogs default-jdk
 
 mkdir -p $HOME/var/yarn-ec2
 
