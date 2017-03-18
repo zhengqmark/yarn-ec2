@@ -104,8 +104,8 @@ Host *
 EOF
 
 XFS_MOUNT_OPTS="defaults,noatime,nodiratime,allocsize=8m"
-DISKS=`lsblk -ln | fgrep -v part | fgrep -v lvm | fgrep -v da | cut -d' ' -f1`
-echo "$DISKS" | awk '{print "/dev/" $0}' > my_disks
+DISKS=`lsblk -ln | fgrep disk | fgrep -v da | cut -d' ' -f1`
+echo "$DISKS" | uniq | sort | awk '{print "/dev/" $0}' > my_disks
 NUM_DISKS=`cat my_disks | wc -l`
 LV_NAME="lxclv0"
 VG_NAME="lxcvg0"
