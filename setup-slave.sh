@@ -103,12 +103,12 @@ Host *
 
 EOF
 
-function maybe_fgrep() {
+function try_fgrep() {
     fgrep $@ || :
 }
 
 XFS_MOUNT_OPTS="defaults,noatime,nodiratime,allocsize=8m"
-DISKS=`lsblk -ln | fgrep disk | cut -d' ' -f1 | maybe_fgrep -v da`
+DISKS=`lsblk -ln | fgrep disk | cut -d' ' -f1 | try_fgrep -v da`
 echo -n "$DISKS" | awk '{print "/dev/" $0}' > my_disks
 NUM_DISKS=`cat my_disks | wc -l`
 LV_NAME="lxclv0"
