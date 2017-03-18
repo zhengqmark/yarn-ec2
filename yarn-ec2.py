@@ -451,7 +451,7 @@ def launch_cluster(conn, opts, cluster_name):
             block_map[name] = dev
 
     # Launch slaves
-    if opts.spot_price is not None:
+    if opts.slaves != 0 and opts.spot_price is not None:
         # Launch spot instances with the requested price
         print("Requesting %d slaves at $%.3f per hour" %
               (opts.slaves, opts.spot_price))
@@ -1247,8 +1247,7 @@ def real_main():
 
     if action == "launch":
         if opts.slaves <= 0:
-            print("ERROR: You have to start at least 1 slave", file=sys.stderr)
-            sys.exit(1)
+            opts.slaves = 0
         if opts.resume:
             (master_nodes, slave_nodes) = get_existing_cluster(conn, opts, cluster_name)
         else:
