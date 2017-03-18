@@ -103,9 +103,13 @@ Host *
 
 EOF
 
+function maybe_fgrep() {
+    fgrep $@ || :
+}
+
 XFS_MOUNT_OPTS="defaults,noatime,nodiratime,allocsize=8m"
-DISKS=`lsblk -ln | fgrep disk | fgrep -v da | cut -d' ' -f1`
-echo "$DISKS" | uniq | sort | awk '{print "/dev/" $0}' > my_disks
+DISKS=`lsblk -ln | fgrep disk | cut -d' ' -f1 | maybe_fgrep -v da`
+echo "$DISKS" | sort | awk '{print "/dev/" $0}' > my_disks
 NUM_DISKS=`cat my_disks | wc -l`
 LV_NAME="lxclv0"
 VG_NAME="lxcvg0"
