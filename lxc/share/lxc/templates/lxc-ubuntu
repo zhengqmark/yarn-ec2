@@ -194,6 +194,10 @@ finalize_user()
 
         echo "Inserted SSH public key from $auth_key into /home/${user}/.ssh/authorized_keys"
     fi
+
+    cat <<EOF >> /etc/sudoers.d/ubuntu-admin
+ubuntu ALL=NOPASSWD: ALL
+EOF
     return 0
 }
 
@@ -342,7 +346,7 @@ download_ubuntu()
             ;;
     esac
 
-    packages_template=${packages_template:-"apt-transport-https,ssh,vim,wget,curl,git,pdsh,tree,htop"}
+    packages_template=${packages_template:-"apt-transport-https,ssh,vim,wget,curl,git,pdsh,tree,htop,sysbench"}
     debootstrap_parameters=
 
     # Try to guess a list of langpacks to install
