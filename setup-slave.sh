@@ -32,6 +32,24 @@ mkdir -p $HOME/var/yarn-ec2
 
 pushd $HOME/var/yarn-ec2 > /dev/null
 
+sudo killall -9 java
+
+sudo rm -rf /tmp/hadoop*
+sudo rm -rf /tmp/yarn*
+
+HADOOP_URL=https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2.0.tar.gz
+wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
+sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
+sudo ln -fs /opt/hadoop-2.2.0 /usr/local/hd
+
+cat <<EOF | sudo tee /etc/environment
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+JAVA_HOME="/usr/lib/jvm/default-java"
+HADOOP_HOME="/usr/local/hd"
+HADOOP_LOG_DIR="/tmp"
+YARN_LOG_DIR="/tmp"
+EOF
+
 function maybe_stop_vm() { ### @param vm_name ###
     sudo lxc-stop -k -n $1 || echo "OK"
 }
@@ -60,8 +78,9 @@ echo "$ID" > my_id
 MASK=`echo $CIDR | cut -d/ -f2`
 DEV=`ls -1 /sys/class/net/ | fgrep -v lxc | fgrep -v lo | head -1`
 
-sudo ip addr show dev $DEV
 sudo ip link set dev $DEV mtu 1500
+
+sudo ip addr show dev $DEV
 sudo ip addr flush secondary dev $DEV
 for ipv4 in `cat my_ips` ; do
     if [ x"$ipv4" != x"$PRIMARY_IP" ] ; then
