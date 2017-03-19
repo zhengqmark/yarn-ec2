@@ -61,6 +61,7 @@ MASK=`echo $CIDR | cut -d/ -f2`
 DEV=`ls -1 /sys/class/net/ | fgrep -v lxc | fgrep -v lo | head -1`
 
 sudo ip addr show dev $DEV
+sudo ip link set dev $DEV mtu 1500
 sudo ip addr flush secondary dev $DEV
 for ipv4 in `cat my_ips` ; do
     if [ x"$ipv4" != x"$PRIMARY_IP" ] ; then
