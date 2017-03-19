@@ -55,7 +55,7 @@ HADOOP_URL=https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2
 wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
 sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
 
-sudo rm -f /usr/local/hg
+sudo rm -f /usr/local/hd
 sudo ln -fs /opt/hadoop-2.2.0 /usr/local/hd
 
 cat <<EOF | sudo tee /etc/environment
