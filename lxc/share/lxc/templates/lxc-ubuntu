@@ -163,7 +163,7 @@ EOF
     fi
 
     # set JAVA_HOME
-    cat <<EOF >>/etc/environment
+    cat <<EOF >/etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/default-java/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 JAVA_HOME="/usr/lib/jvm/default-java"
 EOF
