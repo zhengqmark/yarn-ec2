@@ -32,24 +32,6 @@ mkdir -p $HOME/var/yarn-ec2
 
 pushd $HOME/var/yarn-ec2 > /dev/null
 
-sudo killall -9 java
-
-sudo rm -rf /tmp/hadoop*
-sudo rm -rf /tmp/yarn*
-sudp rm -f /usr/local/hg
-HADOOP_URL=https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2.0.tar.gz
-wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
-sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
-sudo ln -fs /opt/hadoop-2.2.0 /usr/local/hd
-
-cat <<EOF | sudo tee /etc/environment
-PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
-JAVA_HOME="/usr/lib/jvm/default-java"
-HADOOP_HOME="/usr/local/hd"
-HADOOP_LOG_DIR="/tmp"
-YARN_LOG_DIR="/tmp"
-EOF
-
 function maybe_stop_vm() { ### @param vm_name ###
     sudo lxc-stop -k -n $1 || echo "OK"
 }
@@ -63,6 +45,29 @@ done
 sudo service lxc stop
 sudo service lxc-net stop
 sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
+sudo killall -9 java
+
+sudo rm -rf /tmp/hadoop*
+sudo rm -rf /tmp/yarn*
+
+HADOOP_URL=https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2.0.tar.gz
+wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
+sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
+
+sudo rm -f /usr/local/hg
+sudo ln -fs /opt/hadoop-2.2.0 /usr/local/hd
+
+cat <<EOF | sudo tee /etc/environment
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+
+JAVA_HOME="/usr/lib/jvm/default-java"
+HADOOP_HOME="/usr/local/hd"
+HADOOP_LOG_DIR="/tmp"
+
+YARN_LOG_DIR="/tmp"
+
+
+EOF
 
 PRIMARY_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
 echo "$PRIMARY_IP" > my_primary_ip
