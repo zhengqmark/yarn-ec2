@@ -50,6 +50,7 @@ sudo killall -9 java || :
 sudo rm -rf /tmp/hadoop*
 sudo rm -rf /tmp/yarn*
 
+sudo rm -rf /opt/hadoop-*
 HADOOP_URL=https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2.0.tar.gz
 wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
 sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
