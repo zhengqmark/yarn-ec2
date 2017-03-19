@@ -162,6 +162,12 @@ EOF
         rm -f $rootfs/usr/sbin/policy-rc.d
     fi
 
+    # set JAVA_HOME
+    cat <<EOF >>/etc/environment
+PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/default-java/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+JAVA_HOME="/usr/lib/jvm/default-java"
+EOF
+
     return 0
 }
 
@@ -733,7 +739,7 @@ hostarch=$arch
 flushcache=0
 packages=""
 user="ubuntu"
-password="ubuntu"
+password="ursus"
 
 while true
 do
@@ -852,7 +858,7 @@ echo "##"
 if [ -n "$bindhome" ]; then
     echo "# Log in as user $bindhome"
 else
-    echo "# The default user is '$user' with password '$password'!"
+    echo "# The default user is '$user'!"
     echo "# Use the 'sudo' command to run tasks as root in the container."
 fi
 echo "##"
