@@ -54,15 +54,24 @@ sudo rm -rf /opt/hadoop-*
 HADOOP_URL=https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2.0.tar.gz
 wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
 sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
-
 sudo rm -f /usr/local/hd
 sudo ln -fs /opt/hadoop-2.2.0 /usr/local/hd
+
+sudo rm -rf /etc/hd
+sudo ln -fs /usr/local/hd/etc/hadoop/* /etc/hd/
+sudo cp -f $HOME/share/yarn-ec2/hd/etc/hd/core/* /etc/hd/
+sudp cp -f $HOME/share/yarn-ec2/hd/etc/hd/rm/* /etc/hd/
+sudo rm -f /etc/hd/httpfs*
+sudo rm -f /etc/hd/mapred*
+sudo rm -f /etc/hd/*example
+sudo rm -f /etc/hd/*cmd
 
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 
 JAVA_HOME="/usr/lib/jvm/default-java"
 HADOOP_HOME="/usr/local/hd"
+HADOOP_CONF_DIR="/etc/hd"
 HADOOP_LOG_DIR="/tmp"
 
 YARN_LOG_DIR="/tmp"
