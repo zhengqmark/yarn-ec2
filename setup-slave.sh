@@ -57,7 +57,8 @@ sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
 sudo rm -f /usr/local/hd
 sudo ln -fs /opt/hadoop-2.2.0 /usr/local/hd
 
-sudo rm -rf /etc/hd
+sudo rm -rf /etc/hd/*
+sudo mkdir -p /etc/hd
 sudo ln -fs /usr/local/hd/etc/hadoop/* /etc/hd/
 sudo cp -f $HOME/share/yarn-ec2/hd/etc/hd/core/* /etc/hd/
 sudp cp -f $HOME/share/yarn-ec2/hd/etc/hd/rm/* /etc/hd/
