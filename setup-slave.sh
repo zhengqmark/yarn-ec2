@@ -47,6 +47,7 @@ sudo service lxc-net stop
 sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
 sudo killall -9 java || :
 
+sudo rm -rf /tmp/Jetty*
 sudo rm -rf /tmp/hadoop*
 sudo rm -rf /tmp/yarn*
 
@@ -60,8 +61,12 @@ sudo ln -fs /opt/hadoop-2.2.0 /usr/local/hd
 sudo rm -rf /etc/hd/*
 sudo mkdir -p /etc/hd
 sudo ln -fs /usr/local/hd/etc/hadoop/* /etc/hd/
-sudo cp -f $HOME/share/yarn-ec2/hd/etc/hd/core/* /etc/hd/
-sudo cp -f $HOME/share/yarn-ec2/hd/etc/hd/rm/* /etc/hd/
+for xml in 'core/core-site.xml' \
+'core/hdfs-site.xml' 'rm/yarn-site.xml' ; do
+    sudo rm -f /etc/hd/`basename $xml` && \
+        sudo cp -f $HOME/share/yarn-ec2/hd/etc/hd/$xml /etc/hd/
+done
+
 sudo rm -f /etc/hd/httpfs*
 sudo rm -f /etc/hd/mapred*
 sudo rm -f /etc/hd/*example
