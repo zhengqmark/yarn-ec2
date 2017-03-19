@@ -61,7 +61,7 @@ sudo rm -rf /etc/hd/*
 sudo mkdir -p /etc/hd
 sudo ln -fs /usr/local/hd/etc/hadoop/* /etc/hd/
 sudo cp -f $HOME/share/yarn-ec2/hd/etc/hd/core/* /etc/hd/
-sudp cp -f $HOME/share/yarn-ec2/hd/etc/hd/rm/* /etc/hd/
+sudo cp -f $HOME/share/yarn-ec2/hd/etc/hd/rm/* /etc/hd/
 sudo rm -f /etc/hd/httpfs*
 sudo rm -f /etc/hd/mapred*
 sudo rm -f /etc/hd/*example
