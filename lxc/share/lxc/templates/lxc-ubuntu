@@ -201,8 +201,8 @@ finalize_user()
         echo "Inserted SSH public key from $auth_key into /home/${user}/.ssh/authorized_keys"
     fi
 
-    cat <<EOF > "$rootfs/etc/sudoers.d/ubuntu-admin"
-ubuntu ALL=NOPASSWD: ALL
+    cat <<EOF > "$rootfs/etc/sudoers.d/$user-admin"
+$user ALL=NOPASSWD: ALL
 EOF
     return 0
 }
