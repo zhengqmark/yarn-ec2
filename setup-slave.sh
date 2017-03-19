@@ -45,7 +45,7 @@ done
 sudo service lxc stop
 sudo service lxc-net stop
 sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
-sudo killall -9 java
+sudo killall -9 java || :
 
 sudo rm -rf /tmp/hadoop*
 sudo rm -rf /tmp/yarn*
