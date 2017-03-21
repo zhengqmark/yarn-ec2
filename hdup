@@ -18,16 +18,32 @@
 # limitations under the License.
 #
 
-ping ibuki -c 1 &>/dev/null || \
-    echo "NOTE: `basename $0` is supposed to be invoked at an ec2 instance... exit" && exit 1
+ping ibuki -c 1 &>/dev/null
 
-[ -z "$HADOOP_HOME" ] || \
-    echo "NOTE: HADOOP_HOME not set... exit" && exit 1
+if [ $? -ne 0 ] ; then
+    echo "NOTE: `basename $0` is supposed to be invoked at an ec2 instance... exit"
+    exit 1
+fi
+
+if [ -z "$HADOOP_HOME" ] ; then
+    echo "NOTE: HADOOP_HOME not set... exit"
+    exit 1
+fi
+
+if [ -z "$HADOOP_CONF_DIR" ] ; then
+    echo "NOTE: HADOOP_CONF_DIR not set... exit"
+    exit 1
+fi
 
 $HADOOP_HOME/bin/hdfs namenode -format || exit 1
 
 $HADOOP_HOME/sbin/hadoop-daemon.sh --script hdfs start namenode || exit 1
 
-$HADOOP_HOME/sbin/hadoop-daemon.sh --script hdfs start datanode || exit 1
+SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
+export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
+PDSH="pdsh -S -R ssh -b"
+$PDSH -w ^$HADOOP_CONF_DIR/slaves "$HADOOP_HOME/sbin/hadoop-daemon.sh --script hdfs start datanode" || exit 1
+
+echo "!!! ALL DONE !!!"
 
 exit 0
