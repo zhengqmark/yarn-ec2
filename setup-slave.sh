@@ -84,6 +84,8 @@ rm -f /tmp/hd/conf/*-scheduler.xml
 rm -f /tmp/hd/conf/*example
 rm -f /tmp/hd/conf/*cmd
 
+rm -f /tmp/hd/conf/slaves
+cat all-nodes > /tmp/hd/conf/slaves
 cp $HOME/share/yarn-ec2/hd/etc/hd/core-site.xml /tmp/hd/conf/
 cp $HOME/share/yarn-ec2/hd/etc/hd/hdfs-site.xml /tmp/hd/conf/
 
