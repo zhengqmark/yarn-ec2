@@ -32,12 +32,12 @@ mkdir -p $HOME/var/yarn-ec2
 
 pushd $HOME/var/yarn-ec2 > /dev/null
 
-function maybe_stop_vm() { ### @param vm_name ###
-    sudo lxc-stop -k -n $1 || echo "OK"
+function maybe_umount_path() { ### @param path to umount ###
+    sudo umount -f $1 || :
 }
 
 for vm in `sudo lxc-ls` ; do
-    maybe_stop_vm $vm &>/dev/null
+    sudo lxc-stop -k -n $vm || :
     sudo lxc-destroy -f -n $vm
     sleep 0.1
 done
@@ -48,37 +48,49 @@ sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
 sudo killall -9 java || :
 
 sudo rm -rf /tmp/Jetty*
-sudo rm -rf /tmp/hadoop*
 sudo rm -rf /tmp/yarn*
+sudo rm -rf /tmp/hd*
 
 sudo rm -rf /opt/hadoop-*
 HADOOP_URL=https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2.0.tar.gz
 wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
 sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
-sudo rm -f /usr/local/hd
-sudo ln -fs /opt/hadoop-2.2.0 /usr/local/hd
+sudo umount -f /usr/local/hd || :
+sudo mkdir -p /usr/local/hd
+sudo mount /opt/hadoop-2.2.0 /usr/local/hd none ro,bind
 
-sudo rm -rf /etc/hd/*
-sudo mkdir -p /etc/hd
-sudo ln -fs /usr/local/hd/etc/hadoop/* /etc/hd/
-for xml in 'core/core-site.xml' \
-'core/hdfs-site.xml' 'rm/yarn-site.xml' ; do
-    sudo rm -f /etc/hd/`basename $xml` && \
-        sudo cp -f $HOME/share/yarn-ec2/hd/etc/hd/$xml /etc/hd/
-done
+mkdir /tmp/hd
+mkdir /tmp/hd/logs
 
-sudo rm -f /etc/hd/httpfs*
-sudo rm -f /etc/hd/mapred*
-sudo rm -f /etc/hd/*example
-sudo rm -f /etc/hd/*cmd
+ln -s /usr/local/hd/bin /tmp/hd/
+ln -s /usr/local/hd/lib /tmp/hd/
+ln -s /usr/local/hd/libexec /tmp/hd/
+ln -s /usr/local/hd/sbin /tmp/hd/
+ln -s /usr/local/hd/share /tmp/hd/
+
+mkdir /tmp/hd/conf
+
+ln -s /usr/local/hd/etc/hadoop/* /tmp/hd/conf/
+
+rm -f /tmp/hd/conf/core-site.xml
+rm -f /tmp/hd/conf/hdfs-site.xml
+rm -f /tmp/hd/conf/httpfs*
+rm -f /tmp/hd/conf/mapred*
+rm -f /tmp/hd/conf/yarn*
+rm -f /tmp/hd/conf/*example
+rm -f /tmp/hd/conf/*cmd
+
+cp $HOME/share/yarn-ec2/hd/etc/hd/core-site.xml /tmp/hd/conf/
+cp $HOME/share/yarn-ec2/hd/etc/hd/hdfs-site.xml /tmp/hd/conf/
 
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
-
 JAVA_HOME="/usr/lib/jvm/default-java"
-HADOOP_HOME="/usr/local/hd"
-HADOOP_CONF_DIR="/etc/hd"
-HADOOP_LOG_DIR="/tmp"
+
+HADOOP_HOME="/tmp/hd"
+HADOOP_CONF_DIR="/tmp/hd/conf"
+HADOOP_LOG_DIR="/tmp/hd/logs"
+HADOOP_PID_DIR="/tmp/hd"
 
 YARN_LOG_DIR="/tmp"
 
@@ -156,10 +168,6 @@ LV_NAME="lxclv0"
 VG_NAME="lxcvg0"
 LV="/dev/$VG_NAME/$LV_NAME"
 VG="/dev/$VG_NAME"
-
-function maybe_umount_path() { ### @param fspath ###
-    sudo umount -f $1 || echo "OK"
-}
 
 sudo lsblk
 maybe_umount_path /mnt &>/dev/null
