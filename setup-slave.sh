@@ -48,6 +48,7 @@ sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
 sudo killall -9 java || :
 
 sudo rm -rf /tmp/Jetty*
+sudo rm -rf /tmp/hadoop*
 sudo rm -rf /tmp/yarn*
 sudo rm -rf /tmp/hd*
 
@@ -195,6 +196,8 @@ if [ $NUM_DISKS -gt 0 ] ; then
     fi
 fi
 sudo rm -rf /mnt/*
+sudo mkdir /mnt/hdscratch
+sudo chmod 777 /mnt/hdscratch
 sudo lsblk
 
 sudo df -h
