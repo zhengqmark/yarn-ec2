@@ -57,8 +57,7 @@ wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
 sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
 sudo umount -f /usr/local/hd || :
 sudo mkdir -p /usr/local/hd
-sudo mount --bind /opt/hadoop-2.2.0 /usr/local/hd
-sudo mount -o remount,ro /usr/local/hd
+sudo mount --bind -o ro /opt/hadoop-2.2.0 /usr/local/hd
 
 mkdir /tmp/hd
 mkdir /tmp/hd/logs
