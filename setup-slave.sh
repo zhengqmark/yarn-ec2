@@ -56,7 +56,7 @@ sudo rm -rf /opt/hadoop-*
 HADOOP_URL=https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2.0.tar.gz
 wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
 sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
-sudo chown -R root:root /opt/hadoop-2.0.0
+sudo chown -R root:root /opt/hadoop-2.2.0
 sudo umount -f /usr/local/hd || :
 sudo mkdir -p /usr/local/hd
 sudo mount --bind -o ro /opt/hadoop-2.2.0 /usr/local/hd
