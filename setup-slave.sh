@@ -63,6 +63,7 @@ sudo mount --bind -o ro /opt/hadoop-2.2.0 /usr/local/hd
 
 mkdir /tmp/hd
 mkdir /tmp/hd/logs
+mkdir /tmp/hd/pids
 
 ln -s /usr/local/hd/bin /tmp/hd/
 ln -s /usr/local/hd/lib /tmp/hd/
@@ -98,7 +99,7 @@ HADOOP_HEAPSIZE="2000"
 HADOOP_HOME="/tmp/hd"
 HADOOP_CONF_DIR="/tmp/hd/conf"
 HADOOP_LOG_DIR="/tmp/hd/logs"
-HADOOP_PID_DIR="/tmp/hd"
+HADOOP_PID_DIR="/tmp/hd/pids"
 
 YARN_LOG_DIR="/tmp"
 
@@ -250,6 +251,12 @@ sudo iptables -t nat -F  ### will use our own rules ###
 sudo iptables -t nat -L -n
 sudo service lxc start
 sudo lxc-ls -f
+
+rm -f $HOME/bin/hdup
+rm -f $HOME/bin/hddown
+
+ln -s $HOME/share/yarn-ec2/hdup $HOME/bin/
+ln -s $HOME/share/yarn-ec2/hddown $HOME/bin/
 
 popd > /dev/null
 
