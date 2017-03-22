@@ -90,6 +90,31 @@ cat hosts | fgrep r | fgrep -v h | cut -d' ' -f2 > /tmp/hd/conf/slaves
 cp $HOME/share/yarn-ec2/hd/etc/hd/core-site.xml /tmp/hd/conf/
 cp $HOME/share/yarn-ec2/hd/etc/hd/hdfs-site.xml /tmp/hd/conf/
 
+mkdir /tmp/yarn
+mkdir /tmp/yarn/logs
+mkdir /tmp/yarn/pids
+
+ln -s /usr/local/hd/bin /tmp/yarn/
+ln -s /usr/local/hd/lib /tmp/yarn/
+ln -s /usr/local/hd/libexec /tmp/yarn/
+ln -s /usr/local/hd/sbin /tmp/yarn/
+ln -s /usr/local/hd/share /tmp/yarn/
+
+mkdir /tmp/yarn/conf
+
+ln -s /usr/local/hd/etc/hadoop/* /tmp/yarn/conf/
+
+rm -f /tmp/yarn/conf/core-site.xml
+rm -r /tmp/yarn/conf/yarn-site.xml
+rm -f /tmp/yarn/conf/hdfs*
+rm -f /tmp/yarn/conf/httpfs*
+rm -f /tmp/yarn/conf/mapred*
+rm -f /tmp/yarn/conf/*example
+rm -f /tmp/yarn/conf/*cmd
+
+cp $HOME/share/yarn-ec2/hd/etc/hd/core-site.xml /tmp/yarn/conf/
+cp $HOME/share/yarn-ec2/rm/etc/rm/yarn-site.xml /tmp/yarn/conf/
+
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 JAVA_HOME="/usr/lib/jvm/default-java"
@@ -101,7 +126,10 @@ HADOOP_CONF_DIR="/tmp/hd/conf"
 HADOOP_LOG_DIR="/tmp/hd/logs"
 HADOOP_PID_DIR="/tmp/hd/pids"
 
-YARN_LOG_DIR="/tmp"
+YARN_HEAPSIZE="2000"
+
+HADOOP_YARN_HOME="/tmp/yarn"
+YARN_LOG_DIR="/tmp/yarn/logs"
 
 
 EOF
