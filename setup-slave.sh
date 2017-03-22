@@ -235,6 +235,36 @@ sudo cp -f $HOME/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templat
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/default/* /etc/default/
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
 
+function setup_yarn_vm() {
+### @param yarn_root ###
+    YARN_HOME=$1
+    sudo mkdir $YARN_HOME
+    sudo mkdir $YARN_HOME/logs
+
+    sudo ln -s /usr/local/hd/bin $YARN_HOME/
+    sudo ln -s /usr/local/hd/lib $YARN_HOME/
+    sudo ln -s /usr/local/hd/libexec $YARN_HOME/
+    sudo ln -s /usr/local/hd/sbin $YARN_HOME/
+    sudo ln -s /usr/local/hd/share $YARN_HOME/
+
+    sudo mkdir $YARN_HOME/conf
+
+    sudo ln -s /usr/local/hd/etc/hadoop/* $YARN_HOME/conf/
+
+    sudo rm -f $YARN_HOME/conf/core-site.xml
+    sudo rm -r $YARN_HOME/conf/yarn-site.xml
+    sudo rm -f $YARN_HOME/conf/hdfs*
+    sudo rm -f $YARN_HOME/conf/httpfs*
+    sudo rm -f $YARN_HOME/conf/mapred*
+    sudo rm -f $YARN_HOME/conf/*example
+    sudo rm -f $YARN_HOME/conf/*cmd
+
+    sudo cp $HOME/share/yarn-ec2/hd/conf/core-site.xml $YARN_HOME/conf/
+    sudo cp $HOME/share/yarn-ec2/node-mngr/conf/yarn-site.xml $YARN_HOME/conf/
+
+    sudo chown -R ubuntu:ubuntu $YARN_HOME
+}
+
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
@@ -246,6 +276,7 @@ function create_vm() {
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
     sudo cp -r $HOME/share /mnt/$VM_NAME/rootfs/home/ubuntu/
     sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/share
+    setup_yarn_vm /mnt/$VM_NAME/rootfs/tmp/yarn
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
@@ -282,6 +313,8 @@ mkdir -p $HOME/bin
 
 ln -s $HOME/share/yarn-ec2/exec/hdup $HOME/bin/
 ln -s $HOME/share/yarn-ec2/exec/hddown $HOME/bin/
+
+mkdir -p $HOME/src
 
 popd > /dev/null
 

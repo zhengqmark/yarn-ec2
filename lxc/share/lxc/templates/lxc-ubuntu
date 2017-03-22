@@ -166,9 +166,10 @@ EOF
     cat <<EOF > $rootfs/etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/default-java/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 JAVA_HOME="/usr/lib/jvm/default-java"
+
 HADOOP_HOME="/usr/local/hd"
-HADOOP_LOG_DIR="/tmp"
-YARN_LOG_DIR="/tmp"
+
+YARN_HEAPSIZE="1000"
 EOF
 
     return 0
