@@ -31,8 +31,8 @@ fi
 HADOOP_CONF_DIR=/tmp/yarn/conf
 export HADOOP_CONF_DIR
 
-HADOOP_LOG_DIR=/tmp/yarn/logs
-export HADOOP_LOG_DIR
+YARN_LOG_DIR=/tmp/yarn/logs
+export YARN_LOG_DIR
 
 $HADOOP_HOME/sbin/yarn-daemon.sh start resourcemanager || exit 1
 
