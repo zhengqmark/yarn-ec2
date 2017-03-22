@@ -35,15 +35,21 @@ if [ -z "$HADOOP_CONF_DIR" ] ; then
     exit 1
 fi
 
-$HADOOP_HOME/bin/hdfs namenode -format || exit 1
+$HADOOP_HOME/bin/hdfs namenode \
+    -format -clusterid ibuki -force || exit 1
 
-$HADOOP_HOME/sbin/hadoop-daemon.sh --script hdfs start namenode || exit 1
+$HADOOP_HOME/sbin/hadoop-daemon.sh \
+    --script hdfs start namenode || exit 1
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
 export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
 PDSH="pdsh -S -R ssh -b"
-$PDSH -w ^$HADOOP_CONF_DIR/slaves "$HADOOP_HOME/sbin/hadoop-daemon.sh --script hdfs start datanode" || exit 1
+$PDSH -w ^$HADOOP_CONF_DIR/slaves "$HADOOP_HOME/sbin/hadoop-daemon.sh \
+    --script hdfs start datanode" || exit 1
 
+echo ""
+echo ""
+echo "--------------------"
 echo "!!! ALL DONE !!!"
 
 exit 0
