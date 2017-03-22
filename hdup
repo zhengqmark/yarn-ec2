@@ -35,9 +35,6 @@ if [ -z "$HADOOP_CONF_DIR" ] ; then
     exit 1
 fi
 
-$HADOOP_HOME/bin/hdfs namenode \
-    -format -clusterid ibuki -force || exit 1
-
 $HADOOP_HOME/sbin/hadoop-daemon.sh \
     --script hdfs start namenode || exit 1
 
