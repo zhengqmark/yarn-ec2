@@ -255,6 +255,8 @@ sudo lxc-ls -f
 rm -f $HOME/bin/hdup
 rm -f $HOME/bin/hddown
 
+mkdir -p $HOME/bin
+
 ln -s $HOME/share/yarn-ec2/hdup $HOME/bin/
 ln -s $HOME/share/yarn-ec2/hddown $HOME/bin/
 
