@@ -25,8 +25,8 @@ exec 1>&2
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y wget curl vim git realpath tree htop sysbench \
-    lxc lvm2 xfsprogs default-jdk openmpi-bin
+sudo apt-get install -y wget curl vim git realpath tree htop sysbench build-essential \
+    default-jdk lxc lvm2 xfsprogs pssh openmpi-bin
 
 mkdir -p $HOME/var/yarn-ec2
 
@@ -86,6 +86,7 @@ rm -f /tmp/hd/conf/*cmd
 
 rm -f /tmp/hd/conf/slaves
 cat hosts | fgrep r | fgrep -v h | cut -d' ' -f2 > /tmp/hd/conf/slaves
+echo "r0" > /tmp/hd/conf/boss
 cp $HOME/share/yarn-ec2/hd/etc/hd/core-site.xml /tmp/hd/conf/
 cp $HOME/share/yarn-ec2/hd/etc/hd/hdfs-site.xml /tmp/hd/conf/
 
