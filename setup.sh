@@ -44,8 +44,8 @@ PDSH="pdsh -S -R ssh -b"
 
 echo "Setting up YARN on `hostname`..." > /dev/null
 # Set up the masters, slaves, etc files based on cluster env variables
-echo "$MASTERS" > masters
-echo "$SLAVES" > slaves
+echo "$MASTERS" | sed '/^$/d' > masters
+echo "$SLAVES" | sed '/^$/d' > slaves
 cat masters slaves > all-nodes
 NRACKS=`cat all-nodes | wc -l`
 rm -f hosts
