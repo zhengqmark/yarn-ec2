@@ -29,19 +29,19 @@ if [ $? -ne 0 ] ; then
     exit 1
 fi
 
-echo "-INFO- starting resource manager... "
+echo "-INFO- starting resource mngr... "
 parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
     --timeout 0 \
-    --hosts /tmp/hd/conf/boss \
+    --hosts /tmp/yarn/conf/boss \
     --user ubuntu \
     --inline \
     "$PRE/resource-mngr/exec/rmstart" || \
 exit 1
 
-echo "-INFO- starting node managers... "
+echo "-INFO- starting node mngrs... "
 parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
     --timeout 0 \
-    --hosts /tmp/hd/conf/slaves \
+    --hosts /tmp/yarn/conf/slaves \
     --user ubuntu \
     --inline \
     "$PRE/node-mngr/exec/nmstart" || \
