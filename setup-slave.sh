@@ -117,6 +117,10 @@ echo "r0" > /tmp/yarn/conf/boss
 cp $HOME/share/yarn-ec2/hd/conf/core-site.xml /tmp/yarn/conf/
 cp $HOME/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/yarn/conf/
 
+cp -r /tmp/yarn /tmp/yarn-
+rm -f /tmp/yarn-/conf/yarn-site.xml
+cp $HOME/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/yarn-/conf/
+
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 JAVA_HOME="/usr/lib/jvm/default-java"
@@ -235,36 +239,6 @@ sudo cp -f $HOME/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templat
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/default/* /etc/default/
 sudo cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
 
-function setup_yarn_vm() {
-### @param yarn_root ###
-    YARN_HOME=$1
-    sudo mkdir $YARN_HOME
-    sudo mkdir $YARN_HOME/logs
-
-    sudo ln -s /usr/local/hd/bin $YARN_HOME/
-    sudo ln -s /usr/local/hd/lib $YARN_HOME/
-    sudo ln -s /usr/local/hd/libexec $YARN_HOME/
-    sudo ln -s /usr/local/hd/sbin $YARN_HOME/
-    sudo ln -s /usr/local/hd/share $YARN_HOME/
-
-    sudo mkdir $YARN_HOME/conf
-
-    sudo ln -s /usr/local/hd/etc/hadoop/* $YARN_HOME/conf/
-
-    sudo rm -f $YARN_HOME/conf/core-site.xml
-    sudo rm -r $YARN_HOME/conf/yarn-site.xml
-    sudo rm -f $YARN_HOME/conf/hdfs*
-    sudo rm -f $YARN_HOME/conf/httpfs*
-    sudo rm -f $YARN_HOME/conf/mapred*
-    sudo rm -f $YARN_HOME/conf/*example
-    sudo rm -f $YARN_HOME/conf/*cmd
-
-    sudo cp $HOME/share/yarn-ec2/hd/conf/core-site.xml $YARN_HOME/conf/
-    sudo cp $HOME/share/yarn-ec2/node-mngr/conf/yarn-site.xml $YARN_HOME/conf/
-
-    sudo chown -R ubuntu:ubuntu $YARN_HOME
-}
-
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
@@ -277,7 +251,8 @@ function create_vm() {
     sudo cp -r $HOME/share /mnt/$VM_NAME/rootfs/home/ubuntu/
     sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/share
     sudo mkdir /mnt/$VM_NAME/tmp
-    setup_yarn_vm /mnt/$VM_NAME/tmp/yarn
+    sudo cp -r /tmp/yarn- /mnt/$VM_NAME/tmp/yarn
+    sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/tmp/yarn
     echo "lxc.mount.entry = /mnt/$VM_NAME/tmp/yarn tmp/yarn none rw,bind,create=dir" | \
         sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
