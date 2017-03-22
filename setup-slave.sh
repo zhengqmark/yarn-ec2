@@ -63,7 +63,6 @@ sudo mount --bind -o ro /opt/hadoop-2.2.0 /usr/local/hd
 
 mkdir /tmp/hd
 mkdir /tmp/hd/logs
-mkdir /tmp/hd/pids
 
 ln -s /usr/local/hd/bin /tmp/hd/
 ln -s /usr/local/hd/lib /tmp/hd/
@@ -92,7 +91,6 @@ cp $HOME/share/yarn-ec2/hd/etc/hd/hdfs-site.xml /tmp/hd/conf/
 
 mkdir /tmp/yarn
 mkdir /tmp/yarn/logs
-mkdir /tmp/yarn/pids
 
 ln -s /usr/local/hd/bin /tmp/yarn/
 ln -s /usr/local/hd/lib /tmp/yarn/
@@ -119,18 +117,9 @@ cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 JAVA_HOME="/usr/lib/jvm/default-java"
 
+HADOOP_HOME="/usr/local/hd"
+
 HADOOP_HEAPSIZE="2000"
-
-HADOOP_HOME="/tmp/hd"
-HADOOP_CONF_DIR="/tmp/hd/conf"
-HADOOP_LOG_DIR="/tmp/hd/logs"
-HADOOP_PID_DIR="/tmp/hd/pids"
-
-YARN_HEAPSIZE="2000"
-
-HADOOP_YARN_HOME="/tmp/yarn"
-YARN_LOG_DIR="/tmp/yarn/logs"
-
 
 EOF
 

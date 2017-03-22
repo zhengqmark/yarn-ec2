@@ -25,15 +25,19 @@ if [ $? -ne 0 ] ; then
     exit 1
 fi
 
-if [ -z "$HADOOP_HOME" ] ; then
-    echo "NOTE: HADOOP_HOME not set... exit"
+if [ -z "$JAVA_HOME" ] ; then
+    echo "!!! ERROR !!! JAVA_HOME not set... exit"
     exit 1
 fi
 
-if [ -z "$HADOOP_CONF_DIR" ] ; then
-    echo "NOTE: HADOOP_CONF_DIR not set... exit"
+if [ -z "$HADOOP_HOME" ] ; then
+    echo "!!! ERROR !!! HADOOP_HOME not set... exit"
     exit 1
 fi
+
+export HADOOP_LOG_DIR=/tmp/hd/logs
+
+export HADOOP_PID_DIR=/tmp
 
 $HADOOP_HOME/sbin/hadoop-daemon.sh \
     --script hdfs start namenode || exit 1
