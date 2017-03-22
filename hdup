@@ -35,9 +35,14 @@ if [ -z "$HADOOP_HOME" ] ; then
     exit 1
 fi
 
-export HADOOP_LOG_DIR=/tmp/hd/logs
+HADOOP_CONF_DIR=/tmp/hd/conf
+export HADOOP_CONF_DIR
 
-export HADOOP_PID_DIR=/tmp
+HADOOP_LOG_DIR=/tmp/hd/logs
+export HADOOP_LOG_DIR
+
+HADOOP_PID_DIR=/tmp
+export HADOOP_PID_DIR
 
 $HADOOP_HOME/sbin/hadoop-daemon.sh \
     --script hdfs start namenode || exit 1
