@@ -276,7 +276,10 @@ function create_vm() {
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
     sudo cp -r $HOME/share /mnt/$VM_NAME/rootfs/home/ubuntu/
     sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/share
-    setup_yarn_vm /mnt/$VM_NAME/rootfs/tmp/yarn
+    sudo mkdir /mnt/$VM_NAME/tmp
+    setup_yarn_vm /mnt/$VM_NAME/tmp/yarn
+    echo "lxc.mount.entry = /mnt/$VM_NAME/tmp/yarn tmp/yarn none rw,bind,create=dir" | \
+        sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
