@@ -253,7 +253,7 @@ function create_vm() {
     sudo mkdir /mnt/$VM_NAME/tmp
     sudo cp -r /tmp/yarn- /mnt/$VM_NAME/tmp/yarn
     sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/tmp/yarn
-    echo "lxc.mount.entry = /mnt/$VM_NAME/tmp/yarn tmp/yarn none rw,bind,create=dir" | \
+    echo "lxc.mount.entry = /mnt/$VM_NAME/tmp tmp none rw,bind,create=dir" | \
         sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
