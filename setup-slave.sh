@@ -93,6 +93,8 @@ cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 JAVA_HOME="/usr/lib/jvm/default-java"
 
+HADOOP_HEAPSIZE="2000"
+
 HADOOP_HOME="/tmp/hd"
 HADOOP_CONF_DIR="/tmp/hd/conf"
 HADOOP_LOG_DIR="/tmp/hd/logs"
