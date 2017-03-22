@@ -26,7 +26,7 @@ exec 1>&2
 sudo apt-get update && sudo apt-get -y upgrade
 
 sudo apt-get install -y wget curl vim git realpath tree htop sysbench \
-    lxc lvm2 xfsprogs default-jdk
+    lxc lvm2 xfsprogs default-jdk openmpi-bin
 
 mkdir -p $HOME/var/yarn-ec2
 

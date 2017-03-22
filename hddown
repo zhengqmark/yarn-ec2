@@ -47,11 +47,11 @@ export HADOOP_PID_DIR
 $HADOOP_HOME/sbin/hadoop-daemon.sh \
     --script hdfs stop namenode || exit 1
 
-SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
-export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
-PDSH="pdsh -S -R ssh -b"
-$PDSH -w ^$HADOOP_CONF_DIR/slaves "$HADOOP_HOME/sbin/hadoop-daemon.sh \
-    --script hdfs stop datanode" || exit 1
+mpirun.openmpi --hostfile $HADOOP_CONF_DIR/slaves  \
+        -x HADOOP_CONF_DIR -x HADOOP_LOG_DIR -x HADOOP_PID_DIR    \
+    "$HADOOP_HOME/sbin/hadoop-daemon.sh            \
+        --script hdfs stop datanode" ||            \
+            exit 1
 
 echo ""
 echo ""
