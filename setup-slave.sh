@@ -111,6 +111,9 @@ rm -f /tmp/yarn/conf/mapred*
 rm -f /tmp/yarn/conf/*example
 rm -f /tmp/yarn/conf/*cmd
 
+rm -f /tmp/yarn/conf/slaves
+cat hosts | fgrep r | fgrep h | cut -d' ' -f2 > /tmp/yarn/conf/slaves
+echo "r0" > /tmp/yarn/conf/boss
 cp $HOME/share/yarn-ec2/hd/conf/core-site.xml /tmp/yarn/conf/
 cp $HOME/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/yarn/conf/
 
@@ -241,6 +244,8 @@ function create_vm() {
     sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa.pub
     sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
+    sudo cp -r $HOME/share /mnt/$VM_NAME/rootfs/home/ubuntu/
+    sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/share
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
