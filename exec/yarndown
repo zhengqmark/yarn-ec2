@@ -22,9 +22,9 @@ SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 PREFIX="$HOME/share/yarn-ec2"
 
-RMSTART="$PREFIX/resource-mngr/exec/rmstart"
+RMSTOP="$PREFIX/resource-mngr/exec/rmstop"
 
-NMSTART="$PREFIX/node-mngr/exec/nmstart"
+NMSTOP="$PREFIX/node-mngr/exec/nmstop"
 
 CONF="/tmp/yarn/conf"
 
@@ -41,7 +41,7 @@ parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
     --hosts $CONF/boss \
     --user ubuntu \
     --inline \
-    $RMSTART || \
+    $RMSTOP || \
 exit 1
 
 echo "-INFO- starting node mngrs... "
@@ -50,10 +50,10 @@ parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
     --hosts $CONF/slaves \
     --user ubuntu \
     --inline \
-    $NMSTART || \
+    $NMSTOP || \
 exit 1
 
 echo "--------------------"
-echo "!!! YARN UP !!!"
+echo "!!! YARN DOWN !!!"
 
 exit 0
