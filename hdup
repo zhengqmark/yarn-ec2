@@ -47,11 +47,10 @@ export HADOOP_PID_DIR
 $HADOOP_HOME/sbin/hadoop-daemon.sh \
     --script hdfs start namenode || exit 1
 
-mpirun.openmpi --hostfile $HADOOP_CONF_DIR/slaves  \
-        -x HADOOP_CONF_DIR -x HADOOP_LOG_DIR -x HADOOP_PID_DIR    \
-    "$HADOOP_HOME/sbin/hadoop-daemon.sh            \
-        --script hdfs start datanode" ||           \
-            exit 1
+mpirun.openmpi -x HADOOP_CONF_DIR -x HADOOP_LOG_DIR -x HADOOP_PID_DIR \
+        --hostfile $HADOOP_CONF_DIR/slaves \
+    $HADOOP_HOME/sbin/hadoop-daemon.sh \
+        --script hdfs start datanode || exit 1
 
 echo ""
 echo ""
