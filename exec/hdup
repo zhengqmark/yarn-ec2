@@ -20,6 +20,8 @@
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
+EXEC="$HOME/share/yarn-ec2/hd/exec"
+
 ping ibuki -c 1 &>/dev/null
 
 if [ $? -ne 0 ] ; then
@@ -27,20 +29,22 @@ if [ $? -ne 0 ] ; then
     exit 1
 fi
 
+echo "-INFO- starting hdfs master... "
 parallel-ssh --extra-args "-t -t $SSH_OPTS" \
---timeout 0 \
---hosts /tmp/hd/conf/boss \
---user ubuntu \
---inline \
-"$HOME/share/yarn-ec2/hd/exec/nnstart" || \
+    --timeout 0 \
+    --hosts /tmp/hd/conf/boss \
+    --user ubuntu \
+    --inline \
+    "$EXEC/nnstart" || \
 exit 1
 
+echo "-INFO- starting hdfs slaves... "
 parallel-ssh --extra-args "-t -t $SSH_OPTS" \
---timeout 0 \
---hosts /tmp/hd/conf/slaves \
---user ubuntu \
---inline \
-"$HOME/share/yarn-ec2/hd/exec/dnstart" || \
+    --timeout 0 \
+    --hosts /tmp/hd/conf/slaves \
+    --user ubuntu \
+    --inline \
+    "$EXEC/dnstart" || \
 exit 1
 
 echo "--------------------"

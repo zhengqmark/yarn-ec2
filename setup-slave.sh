@@ -275,8 +275,8 @@ rm -f $HOME/bin/hddown
 
 mkdir -p $HOME/bin
 
-ln -s $HOME/share/yarn-ec2/hdup $HOME/bin/
-ln -s $HOME/share/yarn-ec2/hddown $HOME/bin/
+ln -s $HOME/share/yarn-ec2/exec/hdup $HOME/bin/
+ln -s $HOME/share/yarn-ec2/exec/hddown $HOME/bin/
 
 popd > /dev/null
 
