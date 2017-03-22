@@ -87,8 +87,8 @@ rm -f /tmp/hd/conf/*cmd
 rm -f /tmp/hd/conf/slaves
 cat hosts | fgrep r | fgrep -v h | cut -d' ' -f2 > /tmp/hd/conf/slaves
 echo "r0" > /tmp/hd/conf/boss
-cp $HOME/share/yarn-ec2/hd/etc/hd/core-site.xml /tmp/hd/conf/
-cp $HOME/share/yarn-ec2/hd/etc/hd/hdfs-site.xml /tmp/hd/conf/
+cp $HOME/share/yarn-ec2/hd/conf/core-site.xml /tmp/hd/conf/
+cp $HOME/share/yarn-ec2/hd/conf/hdfs-site.xml /tmp/hd/conf/
 
 mkdir /tmp/yarn
 mkdir /tmp/yarn/logs
@@ -111,8 +111,8 @@ rm -f /tmp/yarn/conf/mapred*
 rm -f /tmp/yarn/conf/*example
 rm -f /tmp/yarn/conf/*cmd
 
-cp $HOME/share/yarn-ec2/hd/etc/hd/core-site.xml /tmp/yarn/conf/
-cp $HOME/share/yarn-ec2/rm/etc/rm/yarn-site.xml /tmp/yarn/conf/
+cp $HOME/share/yarn-ec2/hd/conf/core-site.xml /tmp/yarn/conf/
+cp $HOME/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/yarn/conf/
 
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
