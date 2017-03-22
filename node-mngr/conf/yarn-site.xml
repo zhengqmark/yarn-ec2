@@ -15,6 +15,11 @@
 
 <configuration>
     <property>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>r0</value>
+    </property>
+
+    <property>
         <name>yarn.nodemanager.aux-services</name>
         <value>mapreduce_shuffle</value>
     </property>
