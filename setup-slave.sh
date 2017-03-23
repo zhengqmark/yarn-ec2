@@ -197,8 +197,11 @@ VG_NAME="lxcvg0"
 LV="/dev/$VG_NAME/$LV_NAME"
 VG="/dev/$VG_NAME"
 
-sudo lsblk
 sudo lsof | grep /mnt || :
+sudo fuser -k /mnt/*log || :
+
+sudo lsblk
+
 sudo umount -f /mnt || :
 if [ -e $LV ] ; then
     sudo umount -f $LV || :
@@ -223,6 +226,7 @@ fi
 sudo rm -rf /mnt/*
 sudo mkdir /mnt/hdscratch
 sudo chmod 777 /mnt/hdscratch
+
 sudo lsblk
 
 sudo df -h
