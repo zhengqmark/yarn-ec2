@@ -32,10 +32,6 @@ mkdir -p $HOME/var/yarn-ec2
 
 pushd $HOME/var/yarn-ec2 > /dev/null
 
-function maybe_umount_path() { ### @param path to umount ###
-    sudo umount -f $1 || :
-}
-
 for vm in `sudo lxc-ls` ; do
     sudo lxc-stop -k -n $vm || :
     sudo lxc-destroy -f -n $vm
@@ -202,9 +198,9 @@ LV="/dev/$VG_NAME/$LV_NAME"
 VG="/dev/$VG_NAME"
 
 sudo lsblk
-maybe_umount_path /mnt &>/dev/null
+sudo umount -f /mnt || :
 if [ -e $LV ] ; then
-    maybe_umount_path $LV &>/dev/null
+    sudo umount -f $LV || :
     sudo lvremove -f $LV
 fi
 if [ -e $VG ] ; then
