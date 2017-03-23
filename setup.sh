@@ -22,28 +22,27 @@ set -euxo pipefail
 
 exec 1>&2
 
-# Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
 sudo apt-get install -y pdsh
 
-# Load the cluster variables set by the deploy script
-if [ -f $HOME/etc/yarn-ec2.rc ] ; then
-    source $HOME/etc/yarn-ec2.rc
-fi
+function pseudo_echo() {
+    echo "-INFO-" "$@" &>/dev/null || :
+}
 
-mkdir -p $HOME/var/yarn-ec2 && rm -rf $HOME/var/yarn-ec2/*
+[ -f ~/etc/yarn-ec2.rc ] && [ -r ~/etc/yarn-ec2.rc ] && . ~/etc/yarn-ec2.rc
 
-pushd $HOME/var/yarn-ec2 > /dev/null
+mkdir -p ~/var/yarn-ec2 && rm -rf ~/var/yarn-ec2/*
 
-mkdir -p $HOME/tmp
+pushd ~/var/yarn-ec2 > /dev/null
+
+mkdir -p ~/tmp
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
 export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
 PDSH="pdsh -S -R ssh -b"
 
-echo "Setting up YARN on `hostname`..." > /dev/null
-# Set up the masters, slaves, etc files based on cluster env variables
+pseudo_echo "setting up YARN on `hostname`..."
 echo "$MASTERS" | sed '/^$/d' > masters
 echo "$SLAVES" | sed '/^$/d' > slaves
 cat masters slaves > all-nodes
@@ -54,7 +53,7 @@ function setup_rack() {
 ### @param rack_id, rack_ips ###
     RACKDIR=`echo rack-"$1"`
     mkdir -p $RACKDIR
-    VMINFO=`cat $HOME/etc/yarn-topo.txt | fgrep $RACKDIR`
+    VMINFO=`cat ~/etc/yarn-topo.txt | fgrep $RACKDIR`
     echo $VMINFO | cut -d' ' -f4 > $RACKDIR/vmncpus
     echo $VMINFO | cut -d' ' -f3 > $RACKDIR/vmmem
     H=0
@@ -73,29 +72,29 @@ function setup_rack() {
 [ $NRACKS -gt 3 ] && setup_rack 3 "$RACK3"
 [ $NRACKS -gt 4 ] && setup_rack 4 "$RACK4"
 
-echo "Setting executable permissions on scripts..." > /dev/null
-find $HOME/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
-echo "RSYNC'ing packages to other cluster nodes..." > /dev/null
+pseudo_echo "ensuring executable permissions on scripts..."
+find ~/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
+pseudo_echo "distributing packages..."
 for node in `cat slaves` ; do
     echo $node > /dev/null
-    rsync -e "ssh $SSH_OPTS" -az $HOME/share/yarn-ec2 \
-        $node:$HOME/share &
+    rsync -e "ssh $SSH_OPTS" -az ~/share/yarn-ec2 \
+        $node:~/share &
     sleep 0.1
-    rsync -e "ssh $SSH_OPTS" -az $HOME/var/yarn-ec2 \
-        $node:$HOME/var &
+    rsync -e "ssh $SSH_OPTS" -az ~/var/yarn-ec2 \
+        $node:~/var &
     sleep 0.1
 done
 
 wait
 
-echo "Setting up cluster nodes..." > /dev/null
-$PDSH -w ^all-nodes $HOME/share/yarn-ec2/setup-slave.sh \
-    2>&1 | tee $HOME/tmp/setup-slaves.log
+pseudo_echo "setting up cluster nodes..." && exit 0  ## DEBUG ##
+$PDSH -w ^all-nodes ~/share/yarn-ec2/setup-slave.sh \
+    2>&1 | tee ~/tmp/setup-slaves.log
 env JAVA_HOME=/usr/lib/jvm/default-java HADOOP_HOME=/usr/local/hd \
     HADOOP_CONF_DIR=/tmp/hd/conf HADOOP_LOG_DIR=/tmp/hd/logs HADOOP_PID_DIR=/tmp \
     /tmp/hd/bin/hdfs namenode -format -force
-$PDSH -w ^all-nodes $HOME/share/yarn-ec2/start-slave.sh \
-    2>&1 | tee $HOME/tmp/start-slaves.log
+$PDSH -w ^all-nodes ~/share/yarn-ec2/start-slave.sh \
+    2>&1 | tee ~/tmp/start-slaves.log
 
 popd > /dev/null
 
