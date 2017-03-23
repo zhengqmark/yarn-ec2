@@ -118,10 +118,6 @@ echo "r0" > /tmp/yarn/conf/boss
 cp $HOME/share/yarn-ec2/hd/conf/core-site.xml /tmp/yarn/conf/
 cp $HOME/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/yarn/conf/
 
-cp -r /tmp/yarn /tmp/yarn-
-rm -f /tmp/yarn-/conf/yarn-site.xml
-cp $HOME/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/yarn-/conf/
-
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 JAVA_HOME="/usr/lib/jvm/default-java"
@@ -244,17 +240,17 @@ function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
     sudo lxc-create -n $VM_NAME -t ubuntu -- \
-        --auth-key ~/.ssh/id_rsa.pub ### --packages "sysbench" ###
+        --auth-key ~/.ssh/id_rsa.pub ### --packages "???" ###
     sudo cp -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/
     sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa.pub
     sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
     sudo cp -r $HOME/share /mnt/$VM_NAME/rootfs/home/ubuntu/
     sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/share
-    sudo mkdir /mnt/$VM_NAME/tmpfs
-    sudo cp -r /tmp/yarn- /mnt/$VM_NAME/tmpfs/yarn
-    sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/tmpfs/yarn
-    echo "lxc.mount.entry = /mnt/$VM_NAME/tmpfs/yarn tmp/yarn none rw,bind,create=dir" | \
+    cp -r /tmp/yarn /tmp/yarn-$VM_NAME
+    rm -f /tmp/yarn-$VM_NAME/conf/yarn-site.xml
+    cp $HOME/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/yarn-$VM_NAME/conf/
+    echo "lxc.mount.entry = /tmp/yarn-$VM_NAME tmp/yarn none rw,bind,create=dir" | \
         sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
