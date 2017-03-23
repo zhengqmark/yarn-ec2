@@ -25,8 +25,8 @@ exec 1>&2
 # Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y wget curl vim git realpath tree htop sysbench build-essential \
-    default-jdk lxc lvm2 xfsprogs pssh openmpi-bin
+sudo apt-get install -y csh wget curl vim git realpath tree htop sysbench build-essential \
+    default-jdk lxc lvm2 xfsprogs pssh gdb
 
 mkdir -p $HOME/var/yarn-ec2
 

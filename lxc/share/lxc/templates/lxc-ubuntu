@@ -356,7 +356,7 @@ download_ubuntu()
             ;;
     esac
 
-    packages_template=${packages_template:-"apt-transport-https,ssh,vim,wget,curl,git,pdsh,tree,htop,sysbench"}
+    packages_template=${packages_template:-"apt-transport-https,ssh,vim,wget,curl,git,tree,htop,sysbench"}
     debootstrap_parameters=
 
     # Try to guess a list of langpacks to install
