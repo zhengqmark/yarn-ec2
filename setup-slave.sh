@@ -52,10 +52,11 @@ sudo rm -rf /tmp/hadoop*
 sudo rm -rf /tmp/yarn*
 sudo rm -rf /tmp/hd*
 
+sudo mkdir -p /opt/tarfiles
 sudo rm -rf /opt/hadoop-*
 HADOOP_URL=https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2.0.tar.gz
-wget --no-check-certificate $HADOOP_URL -O /tmp/hadoop-2.2.0.tar.gz
-sudo tar xzf /tmp/hadoop-2.2.0.tar.gz -C /opt
+[ ! -e /opt/tarfiles/hadoop-2.2.0.tar.gz ] && wget --no-check-certificate $HADOOP_URL -O /opt/tarfiles/hadoop-2.2.0.tar.gz
+sudo tar xzf /opt/tarfiles/hadoop-2.2.0.tar.gz -C /opt
 sudo chown -R root:root /opt/hadoop-2.2.0
 sudo umount -f /usr/local/hd || :
 sudo mkdir -p /usr/local/hd
