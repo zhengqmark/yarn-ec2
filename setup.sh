@@ -26,9 +26,7 @@ sudo apt-get update && sudo apt-get -y upgrade
 
 sudo apt-get install -y pdsh
 
-function pseudo_echo() {
-    echo "-INFO-" "$@" &>/dev/null || :
-}
+function pseudo_echo() { : }
 
 [ -f ~/etc/yarn-ec2.rc ] && [ -r ~/etc/yarn-ec2.rc ] && . ~/etc/yarn-ec2.rc
 
@@ -87,9 +85,9 @@ done
 
 wait
 
-pseudo_echo "setting up cluster nodes..." && exit 0  ## DEBUG ##
+pseudo_echo "setting up cluster nodes..."
 $PDSH -w ^all-nodes ~/share/yarn-ec2/setup-slave.sh \
-    2>&1 | tee ~/tmp/setup-slaves.log
+    2>&1 | tee ~/tmp/setup-slaves.log && exit 0 ### DEBUG ###
 env JAVA_HOME=/usr/lib/jvm/default-java HADOOP_HOME=/usr/local/hd \
     HADOOP_CONF_DIR=/tmp/hd/conf HADOOP_LOG_DIR=/tmp/hd/logs HADOOP_PID_DIR=/tmp \
     /tmp/hd/bin/hdfs namenode -format -force
