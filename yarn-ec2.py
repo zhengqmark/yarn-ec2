@@ -744,6 +744,7 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
                 command=['tar', 'x'],
                 arguments=dot_ssh_tar
             )
+        print("Passing SSH keys to root...")
         for node in master_nodes + slave_nodes:
             ssh(get_dns_name(node, opts.private_ips), opts, "sudo cp -f ~/.ssh /root/")
 
@@ -784,7 +785,7 @@ def is_ssh_available(host, opts, print_ssh_output=True):
     Check if SSH is available on a host.
     """
     s = subprocess.Popen(
-        ssh_command(opts) + ['-t', '-t', '-o', 'ConnectTimeout=3',
+        ssh_command(opts) + ['-q', '-t', '-t', '-o', 'ConnectTimeout=3',
                              '%s@%s' % (opts.user, host), stringify_command('true')],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT  # we pipe stderr through stdout to preserve output order
