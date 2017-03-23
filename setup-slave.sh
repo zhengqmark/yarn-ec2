@@ -64,67 +64,70 @@ SUNJDK_TGZ=jdk-8u121-linux-x64.tar.gz
 SUNJDK_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$SUNJDK_TGZ
 [ ! -e /opt/tarfiles/$SUNJDK_TGZ ] && wget --no-check-certificate $SUNJDK_URL -O /opt/tarfiles/$SUNJDK_TGZ
 sudo tar xzf /opt/tarfiles/$SUNJDK_TGZ -C /opt
-exit 0 ### DEBUG ###
+sudo chown -R root:root /opt/jdk1.8.0_121
+sudo umount -f /opt/jdk1.8.0_121 || :
+sudo mkdir -p /usr/lib/jvm/sunjdk
+sudo mount --bind -o ro /opt/jdk1.8.0_121 /usr/lib/jvm/sunjdk
 
-mkdir /tmp/hd
-mkdir /tmp/hd/logs
+sudo mkdir /tmp/hd
+sudo mkdir /tmp/hd/logs
 
-ln -s /usr/local/hd/bin /tmp/hd/
-ln -s /usr/local/hd/lib /tmp/hd/
-ln -s /usr/local/hd/libexec /tmp/hd/
-ln -s /usr/local/hd/sbin /tmp/hd/
-ln -s /usr/local/hd/share /tmp/hd/
+sudo ln -s /usr/local/hd/bin /tmp/hd/
+sudo ln -s /usr/local/hd/lib /tmp/hd/
+sudo ln -s /usr/local/hd/libexec /tmp/hd/
+sudo ln -s /usr/local/hd/sbin /tmp/hd/
+sudo ln -s /usr/local/hd/share /tmp/hd/
 
-mkdir /tmp/hd/conf
+sudo mkdir /tmp/hd/conf
 
-ln -s /usr/local/hd/etc/hadoop/* /tmp/hd/conf/
+sudo ln -s /usr/local/hd/etc/hadoop/* /tmp/hd/conf/
 
-rm -f /tmp/hd/conf/core-site.xml
-rm -f /tmp/hd/conf/hdfs-site.xml
-rm -f /tmp/hd/conf/container*
-rm -f /tmp/hd/conf/httpfs*
-rm -f /tmp/hd/conf/mapred*
-rm -f /tmp/hd/conf/yarn*
-rm -f /tmp/hd/conf/*-scheduler.xml
-rm -f /tmp/hd/conf/*example
-rm -f /tmp/hd/conf/*cmd
+sudo rm -f /tmp/hd/conf/core-site.xml
+sudo rm -f /tmp/hd/conf/hdfs-site.xml
+sudo rm -f /tmp/hd/conf/container*
+sudo rm -f /tmp/hd/conf/httpfs*
+sudo rm -f /tmp/hd/conf/mapred*
+sudo rm -f /tmp/hd/conf/yarn*
+sudo rm -f /tmp/hd/conf/*-scheduler.xml
+sudo rm -f /tmp/hd/conf/*example
+sudo rm -f /tmp/hd/conf/*cmd
 
-rm -f /tmp/hd/conf/slaves
-cat hosts | fgrep r | fgrep -v h | cut -d' ' -f2 > /tmp/hd/conf/slaves
-echo "r0" > /tmp/hd/conf/boss
-cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/hd/conf/
-cp ~/share/yarn-ec2/hd/conf/hdfs-site.xml /tmp/hd/conf/
+sudo rm -f /tmp/hd/conf/slaves
+cat hosts | fgrep r | fgrep -v h | cut -d' ' -f2 | sudo tee /tmp/hd/conf/slaves
+echo "r0" | sudo tee /tmp/hd/conf/boss
+sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/hd/conf/
+sudo cp ~/share/yarn-ec2/hd/conf/hdfs-site.xml /tmp/hd/conf/
 
-mkdir /tmp/yarn
-mkdir /tmp/yarn/logs
-
-ln -s /usr/local/hd/bin /tmp/yarn/
-ln -s /usr/local/hd/lib /tmp/yarn/
-ln -s /usr/local/hd/libexec /tmp/yarn/
-ln -s /usr/local/hd/sbin /tmp/yarn/
-ln -s /usr/local/hd/share /tmp/yarn/
-
-mkdir /tmp/yarn/conf
-
-ln -s /usr/local/hd/etc/hadoop/* /tmp/yarn/conf/
-
-rm -f /tmp/yarn/conf/core-site.xml
-rm -r /tmp/yarn/conf/yarn-site.xml
-rm -f /tmp/yarn/conf/hdfs*
-rm -f /tmp/yarn/conf/httpfs*
-rm -f /tmp/yarn/conf/mapred*
-rm -f /tmp/yarn/conf/*example
-rm -f /tmp/yarn/conf/*cmd
-
-rm -f /tmp/yarn/conf/slaves
-cat hosts | fgrep r | fgrep h | cut -d' ' -f2 > /tmp/yarn/conf/slaves
-echo "r0" > /tmp/yarn/conf/boss
-cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/yarn/conf/
-cp ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/yarn/conf/
+# mkdir /tmp/yarn
+# mkdir /tmp/yarn/logs
+#
+# ln -s /usr/local/hd/bin /tmp/yarn/
+# ln -s /usr/local/hd/lib /tmp/yarn/
+# ln -s /usr/local/hd/libexec /tmp/yarn/
+# ln -s /usr/local/hd/sbin /tmp/yarn/
+# ln -s /usr/local/hd/share /tmp/yarn/
+#
+# mkdir /tmp/yarn/conf
+#
+# ln -s /usr/local/hd/etc/hadoop/* /tmp/yarn/conf/
+#
+# rm -f /tmp/yarn/conf/core-site.xml
+# rm -r /tmp/yarn/conf/yarn-site.xml
+# rm -f /tmp/yarn/conf/hdfs*
+# rm -f /tmp/yarn/conf/httpfs*
+# rm -f /tmp/yarn/conf/mapred*
+# rm -f /tmp/yarn/conf/*example
+# rm -f /tmp/yarn/conf/*cmd
+#
+# rm -f /tmp/yarn/conf/slaves
+# cat hosts | fgrep r | fgrep h | cut -d' ' -f2 > /tmp/yarn/conf/slaves
+# echo "r0" > /tmp/yarn/conf/boss
+# cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/yarn/conf/
+# cp ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/yarn/conf/
 
 cat <<EOF | sudo tee /etc/environment
-PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
-JAVA_HOME="/usr/lib/jvm/default-java"
+PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/sunjdk/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+JAVA_HOME="/usr/lib/jvm/sunjdk"
 
 HADOOP_HOME="/usr/local/hd"
 
@@ -240,6 +243,8 @@ sudo df -h
 
 NUM_CPUS=`cat /proc/cpuinfo | fgrep proc | wc -l`
 echo "$NUM_CPUS" > my_ncpus
+
+exit 0 ### DEBUG ###
 
 sudo cp -f ~/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templates/
 sudo cp -f ~/share/yarn-ec2/lxc/etc/default/* /etc/default/
