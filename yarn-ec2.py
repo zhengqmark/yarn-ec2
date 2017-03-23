@@ -746,7 +746,7 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
             )
         print("Passing SSH keys to root...")
         for node in master_nodes + slave_nodes:
-            ssh(get_dns_name(node, opts.private_ips), opts, "sudo cp -f ~/.ssh /root/")
+            ssh(get_dns_name(node, opts.private_ips), opts, "sudo cp -r ~/.ssh /root/")
 
     print("Cloning yarn-ec2 scripts from {r}/tree/{b} on master...".format(
         r=opts.yarn_ec2_git_repo, b=opts.yarn_ec2_git_branch))
