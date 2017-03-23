@@ -283,6 +283,9 @@ sudo lxc-ls -f
 
 rm -f $HOME/bin/hdup
 rm -f $HOME/bin/hddown
+rm -f $HOME/bin/yarnup
+rm -f $HOME/bin/yarndown
+rm -f $HOME/bin/yarnlist
 
 mkdir -p $HOME/bin
 
