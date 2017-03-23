@@ -290,6 +290,7 @@ ln -s $HOME/share/yarn-ec2/exec/hdup $HOME/bin/
 ln -s $HOME/share/yarn-ec2/exec/hddown $HOME/bin/
 ln -s $HOME/share/yarn-ec2/exec/yarnup $HOME/bin/
 ln -s $HOME/share/yarn-ec2/exec/yarndown $HOME/bin/
+ln -s $HOME/share/yarn-ec2/exec/yarnlist $HOME/bin/
 
 mkdir -p $HOME/src
 
