@@ -730,8 +730,7 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
         key_setup = """
           [ -f ~/.ssh/id_rsa ] ||
             (ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa -C ibuki &&
-             cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys &&
-             sudo cp -r ~/.ssh /root/)
+             cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys)
         """
         ssh(master, opts, key_setup)
         dot_ssh_tar = ssh_read(master, opts, ['tar', 'c', '.ssh'])
@@ -745,6 +744,8 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
                 command=['tar', 'x'],
                 arguments=dot_ssh_tar
             )
+        for node in master_nodes + slave_nodes:
+            ssh(get_dns_name(node, opts.private_ips), opts, "sudo cp -f ~/.ssh /root/")
 
     print("Cloning yarn-ec2 scripts from {r}/tree/{b} on master...".format(
         r=opts.yarn_ec2_git_repo, b=opts.yarn_ec2_git_branch))
