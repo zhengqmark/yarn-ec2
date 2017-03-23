@@ -776,8 +776,8 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
 
 
 def setup_spark_cluster(master, opts):
-    ssh(master, opts, "chmod u+x /root/share/yarn-ec2/setup.sh")
-    ssh(master, opts, "/root/share/yarn-ec2/setup.sh")
+    ssh(master, opts, "chmod u+x /root/share/yarn-ec2/setup.sh", force_root=True)
+    ssh(master, opts, "/root/share/yarn-ec2/setup.sh", force_root=True)
 
 
 def is_ssh_available(host, opts, print_ssh_output=True):
@@ -1062,12 +1062,12 @@ def ssh_command(opts):
 
 # Run a command on a host through ssh, retrying up to five times
 # and then throwing an exception if ssh continues to fail.
-def ssh(host, opts, command):
+def ssh(host, opts, command, force_root=False):
     tries = 0
     while True:
         try:
             return subprocess.check_call(
-                ssh_command(opts) + ['-t', '-t', '%s@%s' % (opts.user, host),
+                ssh_command(opts) + ['-t', '-t', '%s@%s' % ('root' if force_root else opts.user, host),
                                      stringify_command(command)])
         except subprocess.CalledProcessError as e:
             if tries > 5:
