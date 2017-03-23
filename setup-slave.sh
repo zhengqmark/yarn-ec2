@@ -184,8 +184,6 @@ Host *
 
 EOF
 
-sleep 5
-
 function try_fgrep() {
     fgrep $@ || :
 }
@@ -200,6 +198,7 @@ LV="/dev/$VG_NAME/$LV_NAME"
 VG="/dev/$VG_NAME"
 
 sudo lsblk
+sudo lsof | grep /mnt || :
 sudo umount -f /mnt || :
 if [ -e $LV ] ; then
     sudo umount -f $LV || :
