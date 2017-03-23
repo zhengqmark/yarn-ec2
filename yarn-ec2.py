@@ -730,7 +730,8 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
         key_setup = """
           [ -f ~/.ssh/id_rsa ] ||
             (ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa -C ibuki &&
-             cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys)
+             cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys &&
+             sudo cp -r ~/.ssh /root/)
         """
         ssh(master, opts, key_setup)
         dot_ssh_tar = ssh_read(master, opts, ['tar', 'c', '.ssh'])
@@ -750,9 +751,9 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
     ssh(
         host=master,
         opts=opts,
-        command="rm -rf ~/share/yarn-ec2"
+        command="sudo rm -rf /root/share/yarn-ec2"
                 + " && "
-                + "git clone {r} -b {b} ~/share/yarn-ec2".format(
+                + "sudo git clone {r} -b {b} /root/share/yarn-ec2".format(
             r=opts.yarn_ec2_git_repo,
             b=opts.yarn_ec2_git_branch
         )
@@ -1029,7 +1030,7 @@ def deploy_files(conn, root_dir, opts, master_nodes, slave_nodes):
         'rsync', '-rv',
         '-e', stringify_command(ssh_command(opts)),
         "%s/" % tmp_dir,
-        "%s@%s:~" % (opts.user, active_master)
+        "%s@%s:/root" % ("root", active_master)
     ]
     subprocess.check_call(command)
     # Remove the temp directory we created above
