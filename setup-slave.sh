@@ -22,15 +22,12 @@ set -euxo pipefail
 
 exec 1>&2
 
-# Install system updates
 sudo apt-get update && sudo apt-get -y upgrade
 
-sudo apt-get install -y csh wget curl vim git realpath tree htop sysbench build-essential \
-    default-jdk lxc lvm2 xfsprogs pssh gdb
+sudo apt-get install -y csh wget curl vim git realpath tree htop libsnappy1v5 \
+    lxc lvm2 xfsprogs pssh
 
-mkdir -p $HOME/var/yarn-ec2
-
-pushd $HOME/var/yarn-ec2 > /dev/null
+pushd ~/var/yarn-ec2 > /dev/null
 
 for vm in `sudo lxc-ls` ; do
     sudo lxc-stop -k -n $vm || :
@@ -42,6 +39,7 @@ sudo service lxc stop
 sudo service lxc-net stop
 sudo rm -f /var/lib/misc/dnsmasq.lxcbr0.leases
 sudo killall -9 java || :
+sleep 0.1
 
 sudo rm -rf /tmp/Jetty*
 sudo rm -rf /tmp/hadoop*
@@ -49,15 +47,24 @@ sudo rm -rf /tmp/yarn*
 sudo rm -rf /tmp/hd*
 
 sudo mkdir -p /opt/tarfiles
-sudo chmod 777 /opt/tarfiles
+sudo chmod a+rwxt /opt/tarfiles
 sudo rm -rf /opt/hadoop-*
-HADOOP_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/hadoop-2.2.0.tar.gz
-[ ! -e /opt/tarfiles/hadoop-2.2.0.tar.gz ] && wget --no-check-certificate $HADOOP_URL -O /opt/tarfiles/hadoop-2.2.0.tar.gz
-sudo tar xzf /opt/tarfiles/hadoop-2.2.0.tar.gz -C /opt
+sudo rm -rf /opt/jdk*
+
+HADOOP_TGZ=hadoop-2.2.0.tar.gz
+HADOOP_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$HADOOP_TGZ
+[ ! -e /opt/tarfiles/$HADOOP_TGZ ] && wget --no-check-certificate $HADOOP_URL -O /opt/tarfiles/$HADOOP_TGZ
+sudo tar xzf /opt/tarfiles/$HADOOP_TGZ -C /opt
 sudo chown -R root:root /opt/hadoop-2.2.0
 sudo umount -f /usr/local/hd || :
 sudo mkdir -p /usr/local/hd
 sudo mount --bind -o ro /opt/hadoop-2.2.0 /usr/local/hd
+
+SUNJDK_TGZ=jdk-8u121-linux-x64.tar.gz
+SUNJDK_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$SUNJDK_TGZ
+[ ! -e /opt/tarfiles/$SUNJDK_TGZ ] && wget --no-check-certificate $SUNJDK_URL -O /opt/tarfiles/$SUNJDK_TGZ
+sudo tar xzf /opt/tarfiles/$SUNJDK_TGZ -C /opt
+exit 0 ### DEBUG ###
 
 mkdir /tmp/hd
 mkdir /tmp/hd/logs
@@ -85,8 +92,8 @@ rm -f /tmp/hd/conf/*cmd
 rm -f /tmp/hd/conf/slaves
 cat hosts | fgrep r | fgrep -v h | cut -d' ' -f2 > /tmp/hd/conf/slaves
 echo "r0" > /tmp/hd/conf/boss
-cp $HOME/share/yarn-ec2/hd/conf/core-site.xml /tmp/hd/conf/
-cp $HOME/share/yarn-ec2/hd/conf/hdfs-site.xml /tmp/hd/conf/
+cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/hd/conf/
+cp ~/share/yarn-ec2/hd/conf/hdfs-site.xml /tmp/hd/conf/
 
 mkdir /tmp/yarn
 mkdir /tmp/yarn/logs
@@ -112,8 +119,8 @@ rm -f /tmp/yarn/conf/*cmd
 rm -f /tmp/yarn/conf/slaves
 cat hosts | fgrep r | fgrep h | cut -d' ' -f2 > /tmp/yarn/conf/slaves
 echo "r0" > /tmp/yarn/conf/boss
-cp $HOME/share/yarn-ec2/hd/conf/core-site.xml /tmp/yarn/conf/
-cp $HOME/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/yarn/conf/
+cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/yarn/conf/
+cp ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/yarn/conf/
 
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
@@ -234,9 +241,9 @@ sudo df -h
 NUM_CPUS=`cat /proc/cpuinfo | fgrep proc | wc -l`
 echo "$NUM_CPUS" > my_ncpus
 
-sudo cp -f $HOME/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templates/
-sudo cp -f $HOME/share/yarn-ec2/lxc/etc/default/* /etc/default/
-sudo cp -f $HOME/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
+sudo cp -f ~/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templates/
+sudo cp -f ~/share/yarn-ec2/lxc/etc/default/* /etc/default/
+sudo cp -f ~/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
 
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
@@ -247,11 +254,11 @@ function create_vm() {
     sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa.pub
     sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
-    sudo cp -r $HOME/share /mnt/$VM_NAME/rootfs/home/ubuntu/
+    sudo cp -r ~/share /mnt/$VM_NAME/rootfs/home/ubuntu/
     sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/share
     cp -r /tmp/yarn /tmp/yarn-$VM_NAME
     rm -f /tmp/yarn-$VM_NAME/conf/yarn-site.xml
-    cp $HOME/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/yarn-$VM_NAME/conf/
+    cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/yarn-$VM_NAME/conf/
     echo "lxc.mount.entry = /tmp/yarn-$VM_NAME tmp/yarn none rw,bind,create=dir" | \
         sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
@@ -283,21 +290,21 @@ sudo iptables -t nat -L -n
 sudo service lxc start
 sudo lxc-ls -f
 
-rm -f $HOME/bin/hdup
-rm -f $HOME/bin/hddown
-rm -f $HOME/bin/yarnup
-rm -f $HOME/bin/yarndown
-rm -f $HOME/bin/yarnlist
+rm -f ~/bin/hdup
+rm -f ~/bin/hddown
+rm -f ~/bin/yarnup
+rm -f ~/bin/yarndown
+rm -f ~/bin/yarnlist
 
-mkdir -p $HOME/bin
+mkdir -p ~/bin
 
-ln -s $HOME/share/yarn-ec2/exec/hdup $HOME/bin/
-ln -s $HOME/share/yarn-ec2/exec/hddown $HOME/bin/
-ln -s $HOME/share/yarn-ec2/exec/yarnup $HOME/bin/
-ln -s $HOME/share/yarn-ec2/exec/yarndown $HOME/bin/
-ln -s $HOME/share/yarn-ec2/exec/yarnlist $HOME/bin/
+ln -s ~/share/yarn-ec2/exec/hdup ~/bin/
+ln -s ~/share/yarn-ec2/exec/hddown ~/bin/
+ln -s ~/share/yarn-ec2/exec/yarnup ~/bin/
+ln -s ~/share/yarn-ec2/exec/yarndown ~/bin/
+ln -s ~/share/yarn-ec2/exec/yarnlist ~/bin/
 
-mkdir -p $HOME/src
+mkdir -p ~/src
 
 popd > /dev/null
 
