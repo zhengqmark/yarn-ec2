@@ -184,6 +184,8 @@ Host *
 
 EOF
 
+sleep 5
+
 function try_fgrep() {
     fgrep $@ || :
 }
