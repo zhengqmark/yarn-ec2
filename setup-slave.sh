@@ -293,7 +293,7 @@ sudo service lxc start
 sudo lxc-ls -f
 
 sudo cp -f ~/share/yarn-ec2/exec/* /usr/local/bin/
-sudo cp -f ~/share/yarn-ec2/hd/exec* /usr/local/bin/
+sudo cp -f ~/share/yarn-ec2/hd/exec/* /usr/local/bin/
 sudo cp -f ~/share/yarn-ec2/resource-mngr/exec/* /usr/local/bin/
 sudo cp -f ~/share/yarn-ec2/node-mngr/exec/* /usr/local/bin/
 
