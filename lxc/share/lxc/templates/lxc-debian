@@ -288,9 +288,11 @@ isc-dhcp-client,\
 netbase,\
 net-tools,\
 iproute,\
+iputils-ping,\
 openssh-server,\
 openssh-client,\
 openmpi-bin,\
+sudo,\
 csh,\
 wget,\
 curl,\
