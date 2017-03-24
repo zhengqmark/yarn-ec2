@@ -28,6 +28,8 @@ sudo apt-get install -y pdsh
 
 alias pseudo_echo=": echo"
 
+shopt -s expand_aliases
+
 [ -f ~/etc/yarn-ec2.rc ] && [ -r ~/etc/yarn-ec2.rc ] && . ~/etc/yarn-ec2.rc
 
 mkdir -p ~/var/yarn-ec2 && rm -rf ~/var/yarn-ec2/*
