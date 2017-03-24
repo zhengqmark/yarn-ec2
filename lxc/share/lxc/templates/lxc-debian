@@ -110,7 +110,7 @@ EOF
 PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/sunjdk/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 JAVA_HOME="/usr/lib/jvm/sunjdk"
 
-HADOOP_HOME="/usr/local/yarn"
+HADOOP_HOME="/usr/local/y"
 
 YARN_HEAPSIZE="1000"
 EOF

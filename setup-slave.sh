@@ -43,8 +43,8 @@ sleep 0.1
 
 sudo rm -rf /tmp/Jetty*
 sudo rm -rf /tmp/hadoop*
-sudo rm -rf /tmp/yarn*
 sudo rm -rf /tmp/hd*
+sudo rm -rf /tmp/y*
 
 sudo mkdir -p /opt/tarfiles
 sudo chmod a+rx /opt/tarfiles
@@ -98,32 +98,32 @@ echo "r0" | sudo tee /tmp/hd/conf/boss
 sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/hd/conf/
 sudo cp ~/share/yarn-ec2/hd/conf/hdfs-site.xml /tmp/hd/conf/
 
-# mkdir /tmp/yarn
-# mkdir /tmp/yarn/logs
-#
-# ln -s /usr/local/hd/bin /tmp/yarn/
-# ln -s /usr/local/hd/lib /tmp/yarn/
-# ln -s /usr/local/hd/libexec /tmp/yarn/
-# ln -s /usr/local/hd/sbin /tmp/yarn/
-# ln -s /usr/local/hd/share /tmp/yarn/
-#
-# mkdir /tmp/yarn/conf
-#
-# ln -s /usr/local/hd/etc/hadoop/* /tmp/yarn/conf/
-#
-# rm -f /tmp/yarn/conf/core-site.xml
-# rm -r /tmp/yarn/conf/yarn-site.xml
-# rm -f /tmp/yarn/conf/hdfs*
-# rm -f /tmp/yarn/conf/httpfs*
-# rm -f /tmp/yarn/conf/mapred*
-# rm -f /tmp/yarn/conf/*example
-# rm -f /tmp/yarn/conf/*cmd
-#
-# rm -f /tmp/yarn/conf/slaves
-# cat hosts | fgrep r | fgrep h | cut -d' ' -f2 > /tmp/yarn/conf/slaves
-# echo "r0" > /tmp/yarn/conf/boss
-# cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/yarn/conf/
-# cp ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/yarn/conf/
+sudo mkdir /tmp/y
+sudo mkdir /tmp/y/logs
+
+sudo ln -s /usr/local/hd/bin /tmp/y/
+sudo ln -s /usr/local/hd/lib /tmp/y/
+sudo ln -s /usr/local/hd/libexec /tmp/y/
+sudo ln -s /usr/local/hd/sbin /tmp/y/
+sudo ln -s /usr/local/hd/share /tmp/y/
+
+sudo mkdir /tmp/y/conf
+
+sudo ln -s /usr/local/hd/etc/hadoop/* /tmp/y/conf/
+
+sudo rm -f /tmp/y/conf/core-site.xml
+sudo rm -r /tmp/y/conf/yarn-site.xml
+sudo rm -f /tmp/y/conf/hdfs*
+sudo rm -f /tmp/y/conf/httpfs*
+sudo rm -f /tmp/y/conf/mapred*
+sudo rm -f /tmp/y/conf/*example
+sudo rm -f /tmp/y/conf/*cmd
+
+sudo rm -f /tmp/y/conf/slaves
+cat hosts | fgrep r | fgrep h | cut -d' ' -f2 | tee /tmp/y/conf/slaves
+echo "r0h0" | tee /tmp/y/conf/boss
+sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/y/conf/
+sudo cp ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/y/conf/
 
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/sunjdk/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
@@ -258,11 +258,11 @@ function create_vm() {
     sudo cp -f /etc/profile /mnt/$VM_NAME/rootfs/etc/
     sudo cp -r ~/share /mnt/$VM_NAME/rootfs/root/
     sudo chown -R root:root /mnt/$VM_NAME/rootfs/root/share
-    # cp -r /tmp/yarn /tmp/yarn-$VM_NAME
-    # rm -f /tmp/yarn-$VM_NAME/conf/yarn-site.xml
-    # cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/yarn-$VM_NAME/conf/
-    # echo "lxc.mount.entry = /tmp/yarn-$VM_NAME tmp/yarn none rw,bind,create=dir" | \
-    #     sudo tee -a /mnt/$VM_NAME/config
+    sudo cp -r /tmp/y /tmp/y-$VM_NAME
+    sudo rm -f /tmp/y-$VM_NAME/conf/yarn-site.xml
+    sudo cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/y-$VM_NAME/conf/
+    echo "lxc.mount.entry = /tmp/y-$VM_NAME tmp/y none rw,bind,create=dir" | \
+         sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
