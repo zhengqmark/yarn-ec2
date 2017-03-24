@@ -295,6 +295,7 @@ iputils-ping,\
 openssh-server,\
 openssh-client,\
 openmpi-bin,\
+pssh,\
 sudo,\
 csh,\
 wget,\
