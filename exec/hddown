@@ -27,20 +27,23 @@ if [ $? -ne 0 ] ; then
     exit 1
 fi
 
+if [ `id -u` -ne 0 ] ; then
+    echo "NOTE: `basename $0` must be executed as root... exit"
+    exit 1
+fi
+
 echo "-INFO- stopping hdfs master... "
-sudo parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
+parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
     --timeout 0 \
     --hosts /tmp/hd/conf/boss \
-    --user root \
     --inline \
     "nnstop" || \
 exit 1
 
 echo "-INFO- stopping hdfs slaves... "
-sudo parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
+parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
     --timeout 0 \
     --hosts /tmp/hd/conf/slaves \
-    --user root \
     --inline \
     "dnstop" || \
 exit 1
