@@ -93,6 +93,11 @@ dns-nameservers 192.168.1.1
 EOF
 
     # set the hostname
+    cat <<EOF > $rootfs/etc/resolv.conf
+192.168.1.1
+EOF
+
+    # set the hostname
     cat <<EOF > $rootfs/etc/hostname
 $hostname
 EOF
@@ -172,7 +177,6 @@ EOF
     fi
 
     echo "root:root" | chroot "$rootfs" chpasswd
-    echo "Root password is 'root', please change !"
 
     return 0
 }
