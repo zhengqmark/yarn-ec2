@@ -66,7 +66,7 @@ TAPACK_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$TAPACK_TGZ
     sudo wget --no-check-certificate $TAPACK_URL -O /opt/tarfiles/$TAPACK_TGZ
 sudo tar xzf /opt/tarfiles/$TAPACK_TGZ -C /opt
 sudo chown -R root:root /opt/advcc-sp1
-sudo cp /opt/advcc-sp1/jobexec/* /opt/hadoop-2.2.0/
+sudo cp /opt/advcc-sp1/jobexe/* /opt/hadoop-2.2.0/
 sudo mv /opt/hadoop-2.2.0/share/hadoop/yarn/hadoop-yarn-server-resourcemanager-2.2.0.jar \
     /opt/hadoop-2.2.0/share/hadoop/yarn/hadoop-yarn-server-resourcemanager-2.2.0.jar.origin
 sudo cp /opt/advcc-sp1/hadoop-yarn-server-resourcemanager-2.2.0.jar /opt/hadoop-2.2.0/share/hadoop/yarn/
