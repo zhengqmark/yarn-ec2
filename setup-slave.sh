@@ -59,6 +59,17 @@ sudo chown -R root:root /opt/hadoop-2.2.0
 sudo umount -l /usr/local/hd || :
 sudo mkdir -p /usr/local/hd
 sudo mount --bind -o ro /opt/hadoop-2.2.0 /usr/local/hd
+TAPACK_TGZ=advcc-sp1.tar.gz
+TAPACK_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$TAPACK_TGZ
+[ ! -e /opt/tarfiles/$TAPACK_TGZ ] && sudo wget --no-check-certificate $TAPACK_URL -O /opt/tarfiles/$TAPACK_TGZ
+sudo tar xzf /opt/tarfiles/$TAPACK_TGZ -C /opt
+sudo chown -R root:root /opt/advcc-sp1
+sudo cp /opt/advcc-sp1/jobexec/* /opt/hadoop-2.2.0/
+sudo mv /opt/hadoop-2.2.0/share/hadoop/yarn/hadoop-yarn-server-resourcemanager-2.2.0.jar \
+    /opt/hadoop-2.2.0/share/hadoop/yarn/hadoop-yarn-server-resourcemanager-2.2.0.jar.origin
+sudo cp /opt/advcc-sp1/hadoop-yarn-server-resourcemanager-2.2.0.jar /opt/hadoop-2.2.0/share/hadoop/yarn/
+sudo cp /opt/advcc-sp1/hadoop-yarn-applications-mpirunner-2.2.0.jar /opt/hadoop-2.2.0/
+sudo cp /opt/advcc-sp1/hadoop-yarn-applications-gpu-2.2.0.jar /opt/hadoop-2.2.0/
 
 SUNJDK_TGZ=jdk-8u121-linux-x64.tar.gz
 SUNJDK_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$SUNJDK_TGZ
