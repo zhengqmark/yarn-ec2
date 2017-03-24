@@ -292,22 +292,13 @@ sudo iptables -t nat -L -n
 sudo service lxc start
 sudo lxc-ls -f
 
-# sudo rm -f ~/bin/hdup
-# sudo rm -f ~/bin/hddown
-# sudo rm -f ~/bin/yarnup
-# sudo rm -f ~/bin/yarndown
-# sudo rm -f ~/bin/yarnlist
-#
-sudo mkdir -p ~/bin
-#
-# sudo ln -s ~/share/yarn-ec2/exec/hdup ~/bin/
-# sudo ln -s ~/share/yarn-ec2/exec/hddown ~/bin/
-# sudo ln -s ~/share/yarn-ec2/exec/yarnup ~/bin/
-# sudo ln -s ~/share/yarn-ec2/exec/yarndown ~/bin/
-# sudo ln -s ~/share/yarn-ec2/exec/yarnlist ~/bin/
+sudo cp -f ~/share/yarn-ec2/exec/* /usr/local/bin/
+sudo cp -f ~/share/yarn-ec2/hd/exec* /usr/local/bin/
+sudo cp -f ~/share/yarn-ec2/resource-mngr/exec/* /usr/local/bin/
+sudo cp -f ~/share/yarn-ec2/node-mngr/exec/* /usr/local/bin/
 
 sudo mkdir -p ~/lib
-
+sudo mkdir -p ~/bin
 sudo mkdir -p ~/src
 
 popd > /dev/null
