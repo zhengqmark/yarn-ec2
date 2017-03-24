@@ -121,7 +121,7 @@ sudo rm -f /tmp/y/conf/*cmd
 
 sudo rm -f /tmp/y/conf/slaves
 cat hosts | fgrep r | fgrep h | cut -d' ' -f2 | tee /tmp/y/conf/slaves
-echo "r0h0" | tee /tmp/y/conf/boss
+echo "r0" | tee /tmp/y/conf/boss
 sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/y/conf/
 sudo cp ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/y/conf/
 
