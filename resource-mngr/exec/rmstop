@@ -33,10 +33,10 @@ if [ -z "$HADOOP_HOME" ] ; then
     exit 1
 fi
 
-HADOOP_CONF_DIR=/tmp/yarn/conf
+HADOOP_CONF_DIR=/tmp/y/conf
 export HADOOP_CONF_DIR
 
-YARN_LOG_DIR=/tmp/yarn/logs
+YARN_LOG_DIR=/tmp/y/logs
 export YARN_LOG_DIR
 
 $HADOOP_HOME/sbin/yarn-daemon.sh stop resourcemanager || exit 1
