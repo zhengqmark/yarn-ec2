@@ -120,6 +120,10 @@ sudo ln -s /usr/local/hd/lib /tmp/y/
 sudo ln -s /usr/local/hd/libexec /tmp/y/
 sudo ln -s /usr/local/hd/sbin /tmp/y/
 sudo ln -s /usr/local/hd/share /tmp/y/
+sudo ln -s /usr/local/hd/hadoop-yarn-applications-* /tmp/y/
+sudo ln -s /usr/local/hd/bt* /tmp/y/
+sudo ln -s /usr/local/hd/ft* /tmp/y/
+sudo ln -s /usr/local/hd/sp* /tmp/y/
 
 sudo mkdir /tmp/y/conf
 
