@@ -86,7 +86,6 @@ wait
 echo "setting up cluster nodes..."
 $PDSH -w ^all-nodes ~/share/yarn-ec2/setup-slave.sh \
     2>&1 | tee ~/tmp/setup-slaves.log
-exit 0 ### DEBUG ###
 env JAVA_HOME=/usr/lib/jvm/default-java HADOOP_HOME=/usr/local/hd \
     HADOOP_CONF_DIR=/tmp/hd/conf HADOOP_LOG_DIR=/tmp/hd/logs HADOOP_PID_DIR=/tmp \
     /tmp/hd/bin/hdfs namenode -format -force

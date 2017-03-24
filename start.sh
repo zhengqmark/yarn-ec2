@@ -22,17 +22,17 @@ set -euxo pipefail
 
 exec 1>&2
 
-pushd $HOME/var/yarn-ec2 > /dev/null
+pushd ~/var/yarn-ec2 > /dev/null
 
-mkdir -p $HOME/tmp
+mkdir -p ~/tmp
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"
 export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
 PDSH="pdsh -S -R ssh -b"
 
-echo "Running start-slave on all cluster nodes..." > /dev/null
-$PDSH -w ^all-nodes $HOME/share/yarn-ec2/start-slave.sh \
-    2>&1 | tee $HOME/tmp/start-slaves.log
+echo "starting lxc on all cluster nodes..." > /dev/null
+$PDSH -w ^all-nodes ~/share/yarn-ec2/start-slave.sh \
+    2>&1 | tee ~/tmp/start-slaves.log
 
 popd > /dev/null
 
