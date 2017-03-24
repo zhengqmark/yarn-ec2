@@ -26,7 +26,7 @@ sudo apt-get update && sudo apt-get -y upgrade
 
 sudo apt-get install -y pdsh
 
-alias pseudo_echo=:
+alias pseudo_echo=": echo"
 
 [ -f ~/etc/yarn-ec2.rc ] && [ -r ~/etc/yarn-ec2.rc ] && . ~/etc/yarn-ec2.rc
 
