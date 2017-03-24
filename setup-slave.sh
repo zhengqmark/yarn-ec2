@@ -255,6 +255,7 @@ function create_vm() {
     sudo cp -r ~/.ssh /mnt/$VM_NAME/rootfs/root/
     sudo chown -R root:root /mnt/$VM_NAME/rootfs/root/.ssh
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
+    sudo cp -f /etc/profile /mnt/$VM_NAME/rootfs/etc/
     sudo cp -r ~/share /mnt/$VM_NAME/rootfs/root/
     sudo chown -R root:root /mnt/$VM_NAME/rootfs/root/share
     # cp -r /tmp/yarn /tmp/yarn-$VM_NAME
