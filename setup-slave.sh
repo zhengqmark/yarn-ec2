@@ -256,8 +256,6 @@ function create_vm() {
     sudo chown -R root:root /mnt/$VM_NAME/rootfs/root/.ssh
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
     sudo cp -f /etc/profile /mnt/$VM_NAME/rootfs/etc/
-    sudo cp -r ~/share /mnt/$VM_NAME/rootfs/root/
-    sudo chown -R root:root /mnt/$VM_NAME/rootfs/root/share
     sudo cp -r /tmp/y /tmp/y-$VM_NAME
     sudo rm -f /tmp/y-$VM_NAME/conf/yarn-site.xml
     sudo cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/y-$VM_NAME/conf/
@@ -292,10 +290,10 @@ sudo iptables -t nat -L -n
 sudo service lxc start
 sudo lxc-ls -f
 
-sudo cp -f ~/share/yarn-ec2/exec/* /usr/local/bin/
-sudo cp -f ~/share/yarn-ec2/hd/exec/* /usr/local/bin/
-sudo cp -f ~/share/yarn-ec2/resource-mngr/exec/* /usr/local/bin/
-sudo cp -f ~/share/yarn-ec2/node-mngr/exec/* /usr/local/bin/
+sudo cp -f ~/share/yarn-ec2/exec/* /usr/local/sbin/
+sudo cp -f ~/share/yarn-ec2/hd/exec/* /usr/local/sbin/
+sudo cp -f ~/share/yarn-ec2/resource-mngr/exec/* /usr/local/sbin/
+sudo cp -f ~/share/yarn-ec2/node-mngr/exec/* /usr/local/sbin/
 
 sudo mkdir -p ~/lib
 sudo mkdir -p ~/bin
