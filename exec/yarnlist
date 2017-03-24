@@ -20,11 +20,9 @@
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-PREFIX="$HOME/share/yarn-ec2"
+YCMD="yarn_wrapper node -all -list"
 
-YARN="$PREFIX/resource-mngr/exec/yarn_wrapper"
-
-CONF="/tmp/yarn/conf"
+CONF="/tmp/y/conf"
 
 ping ibuki -c 1 &>/dev/null
 
@@ -33,13 +31,17 @@ if [ $? -ne 0 ] ; then
     exit 1
 fi
 
+if [ `id -u` -ne 0 ] ; then
+    echo "NOTE: `basename $0` must be executed as root... exit"
+    exit 1
+fi
+
 echo "-INFO- listing all yarn nodes... "
 parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
     --timeout 0 \
     --hosts $CONF/boss \
-    --user ubuntu \
     --inline \
-    $YARN node -all -list || \
+    $YCMD || \
 exit 1
 
 echo "--------------------"

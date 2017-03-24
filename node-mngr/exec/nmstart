@@ -18,6 +18,11 @@
 # limitations under the License.
 #
 
+if [ `id -u` -ne 0 ] ; then
+    echo "!!! ERROR !!! must be root... exit"
+    exit 1
+fi
+
 if [ -z "$JAVA_HOME" ] ; then
     echo "!!! ERROR !!! JAVA_HOME not set... exit"
     exit 1
