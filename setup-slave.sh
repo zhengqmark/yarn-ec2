@@ -235,7 +235,6 @@ if [ $NUM_DISKS -gt 0 ] ; then
 fi
 sudo rm -rf /mnt/*
 sudo mkdir /mnt/hdscratch
-sudo chmod 777 /mnt/hdscratch
 
 sudo lsblk
 
@@ -244,8 +243,6 @@ sudo df -h
 NUM_CPUS=`cat /proc/cpuinfo | fgrep proc | wc -l`
 echo "$NUM_CPUS" > my_ncpus
 
-exit 0 ### DEBUG ###
-
 sudo cp -f ~/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templates/
 sudo cp -f ~/share/yarn-ec2/lxc/etc/default/* /etc/default/
 sudo cp -f ~/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
@@ -253,19 +250,18 @@ sudo cp -f ~/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus ###
     VM_NAME=`echo r"$1"h"$2"`
-    sudo lxc-create -n $VM_NAME -t ubuntu -- \
-        --auth-key ~/.ssh/id_rsa.pub ### --packages "???" ###
-    sudo cp -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/
-    sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa.pub
-    sudo chown ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/.ssh/id_rsa
+    sudo lxc-create -n $VM_NAME -t debian -- \
+        --release wheezy  ### --packages ??? ###
+    sudo cp -r ~/.ssh /mnt/$VM_NAME/rootfs/root/
+    sudo chown -R root:root /mnt/$VM_NAME/rootfs/root/.ssh
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
-    sudo cp -r ~/share /mnt/$VM_NAME/rootfs/home/ubuntu/
-    sudo chown -R ubuntu:ubuntu /mnt/$VM_NAME/rootfs/home/ubuntu/share
-    cp -r /tmp/yarn /tmp/yarn-$VM_NAME
-    rm -f /tmp/yarn-$VM_NAME/conf/yarn-site.xml
-    cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/yarn-$VM_NAME/conf/
-    echo "lxc.mount.entry = /tmp/yarn-$VM_NAME tmp/yarn none rw,bind,create=dir" | \
-        sudo tee -a /mnt/$VM_NAME/config
+    sudo cp -r ~/share /mnt/$VM_NAME/rootfs/root/
+    sudo chown -R root:root /mnt/$VM_NAME/rootfs/root/share
+    # cp -r /tmp/yarn /tmp/yarn-$VM_NAME
+    # rm -f /tmp/yarn-$VM_NAME/conf/yarn-site.xml
+    # cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/yarn-$VM_NAME/conf/
+    # echo "lxc.mount.entry = /tmp/yarn-$VM_NAME tmp/yarn none rw,bind,create=dir" | \
+    #     sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
     sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
@@ -295,21 +291,23 @@ sudo iptables -t nat -L -n
 sudo service lxc start
 sudo lxc-ls -f
 
-rm -f ~/bin/hdup
-rm -f ~/bin/hddown
-rm -f ~/bin/yarnup
-rm -f ~/bin/yarndown
-rm -f ~/bin/yarnlist
+# sudo rm -f ~/bin/hdup
+# sudo rm -f ~/bin/hddown
+# sudo rm -f ~/bin/yarnup
+# sudo rm -f ~/bin/yarndown
+# sudo rm -f ~/bin/yarnlist
+#
+sudo mkdir -p ~/bin
+#
+# sudo ln -s ~/share/yarn-ec2/exec/hdup ~/bin/
+# sudo ln -s ~/share/yarn-ec2/exec/hddown ~/bin/
+# sudo ln -s ~/share/yarn-ec2/exec/yarnup ~/bin/
+# sudo ln -s ~/share/yarn-ec2/exec/yarndown ~/bin/
+# sudo ln -s ~/share/yarn-ec2/exec/yarnlist ~/bin/
 
-mkdir -p ~/bin
+sudo mkdir -p ~/lib
 
-ln -s ~/share/yarn-ec2/exec/hdup ~/bin/
-ln -s ~/share/yarn-ec2/exec/hddown ~/bin/
-ln -s ~/share/yarn-ec2/exec/yarnup ~/bin/
-ln -s ~/share/yarn-ec2/exec/yarndown ~/bin/
-ln -s ~/share/yarn-ec2/exec/yarnlist ~/bin/
-
-mkdir -p ~/src
+sudo mkdir -p ~/src
 
 popd > /dev/null
 
