@@ -88,15 +88,28 @@ auto lo
 iface lo inet loopback
 
 auto eth0
-iface eth0 inet dhcp
+iface eth0 inet manual
+dns-nameservers 192.168.1.1
 EOF
 
     # set the hostname
     cat <<EOF > $rootfs/etc/hostname
 $hostname
 EOF
-
+    # set minimal hosts
+    cat <<EOF > $rootfs/etc/hosts
+127.0.0.1   localhost
+EOF
     # reconfigure some services
+    # set JAVA_HOME
+    cat <<EOF > $rootfs/etc/environment
+PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/sunjdk/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+JAVA_HOME="/usr/lib/jvm/sunjdk"
+
+HADOOP_HOME="/usr/local/yarn"
+
+YARN_HEAPSIZE="1000"
+EOF
 
     # but first reconfigure locales - so we get no noisy perl-warnings
     if [ -z "$LANG" ]; then
@@ -275,7 +288,16 @@ isc-dhcp-client,\
 netbase,\
 net-tools,\
 iproute,\
-openssh-server
+openssh-server,\
+openssh-client,\
+openmpi-bin,\
+csh,\
+wget,\
+curl,\
+vim,\
+git,\
+tree,\
+htop
 
     cache=$1
     arch=$2
