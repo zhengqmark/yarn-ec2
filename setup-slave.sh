@@ -55,7 +55,8 @@ HADOOP_TGZ=hadoop-2.2.0.tar.gz
 HADOOP_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$HADOOP_TGZ
 [ ! -e /opt/tarfiles/$HADOOP_TGZ ] && sudo wget --no-check-certificate $HADOOP_URL -O /opt/tarfiles/$HADOOP_TGZ
 sudo tar xzf /opt/tarfiles/$HADOOP_TGZ -C /opt
-sudo umount -f /usr/local/hd || :
+sudo chown -R root:root /opt/hadoop-2.2.0
+sudo umount -l /usr/local/hd || :
 sudo mkdir -p /usr/local/hd
 sudo mount --bind -o ro /opt/hadoop-2.2.0 /usr/local/hd
 
@@ -63,7 +64,8 @@ SUNJDK_TGZ=jdk-8u121-linux-x64.tar.gz
 SUNJDK_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$SUNJDK_TGZ
 [ ! -e /opt/tarfiles/$SUNJDK_TGZ ] && sudo wget --no-check-certificate $SUNJDK_URL -O /opt/tarfiles/$SUNJDK_TGZ
 sudo tar xzf /opt/tarfiles/$SUNJDK_TGZ -C /opt
-sudo umount -f /opt/jdk1.8.0_121 || :
+sudo chown -R root:root /opt/jdk1.8.0_121
+sudo umount -l /usr/lib/jvm/sunjdk || :
 sudo mkdir -p /usr/lib/jvm/sunjdk
 sudo mount --bind -o ro /opt/jdk1.8.0_121 /usr/lib/jvm/sunjdk
 
