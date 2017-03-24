@@ -37,6 +37,6 @@ export HADOOP_LOG_DIR
 HADOOP_PID_DIR=/tmp
 export HADOOP_PID_DIR
 
-$HADOOP_HOME/sbin/hadoop-daemon.sh --script hdfs start namenode || exit 1
+sudo $HADOOP_HOME/sbin/hadoop-daemon.sh --script hdfs start namenode || exit 1
 
 exit 0
