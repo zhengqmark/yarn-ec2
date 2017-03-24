@@ -38,7 +38,7 @@ SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o Connect
 export PDSH_SSH_ARGS_APPEND="$SSH_OPTS"
 PDSH="pdsh -S -R ssh -b"
 
-: echo "setting up YARN on `hostname`..."
+echo "setting up YARN on `hostname`..."
 echo "$MASTERS" | sed '/^$/d' > masters
 echo "$SLAVES" | sed '/^$/d' > slaves
 cat masters slaves > all-nodes
@@ -68,9 +68,9 @@ function setup_rack() {
 [ $NRACKS -gt 3 ] && setup_rack 3 "$RACK3"
 [ $NRACKS -gt 4 ] && setup_rack 4 "$RACK4"
 
-: echo "ensuring executable permissions on scripts..."
+echo "ensuring executable permissions on scripts..."
 find ~/share/yarn-ec2 -regex "^.+\.sh$" | xargs chmod a+x
-: echo "distributing packages..."
+echo "distributing packages..."
 for node in `cat slaves` ; do
     echo $node > /dev/null
     rsync -e "ssh $SSH_OPTS" -az ~/share/yarn-ec2 \
@@ -83,7 +83,7 @@ done
 
 wait
 
-: echo "setting up cluster nodes..."
+echo "setting up cluster nodes..."
 $PDSH -w ^all-nodes ~/share/yarn-ec2/setup-slave.sh \
     2>&1 | tee ~/tmp/setup-slaves.log
 exit 0 ### DEBUG ###
