@@ -53,7 +53,8 @@ sudo rm -rf /opt/jdk*
 
 HADOOP_TGZ=hadoop-2.2.0.tar.gz
 HADOOP_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$HADOOP_TGZ
-[ ! -e /opt/tarfiles/$HADOOP_TGZ ] && sudo wget --no-check-certificate $HADOOP_URL -O /opt/tarfiles/$HADOOP_TGZ
+[ ! -e /opt/tarfiles/$HADOOP_TGZ -o ! -s /opt/tarfiles/$HADOOP_TGZ ] && \
+sudo wget --no-check-certificate $HADOOP_URL -O /opt/tarfiles/$HADOOP_TGZ
 sudo tar xzf /opt/tarfiles/$HADOOP_TGZ -C /opt
 sudo chown -R root:root /opt/hadoop-2.2.0
 sudo umount -l /usr/local/hd || :
@@ -61,7 +62,8 @@ sudo mkdir -p /usr/local/hd
 sudo mount --bind -o ro /opt/hadoop-2.2.0 /usr/local/hd
 TAPACK_TGZ=advcc-sp1.tar.gz
 TAPACK_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$TAPACK_TGZ
-[ ! -e /opt/tarfiles/$TAPACK_TGZ ] && sudo wget --no-check-certificate $TAPACK_URL -O /opt/tarfiles/$TAPACK_TGZ
+[ ! -e /opt/tarfiles/$TAPACK_TGZ -o ! -s /opt/tarfiles/$TAPACK_TGZ ] && \
+    sudo wget --no-check-certificate $TAPACK_URL -O /opt/tarfiles/$TAPACK_TGZ
 sudo tar xzf /opt/tarfiles/$TAPACK_TGZ -C /opt
 sudo chown -R root:root /opt/advcc-sp1
 sudo cp /opt/advcc-sp1/jobexec/* /opt/hadoop-2.2.0/
@@ -73,7 +75,8 @@ sudo cp /opt/advcc-sp1/hadoop-yarn-applications-gpu-2.2.0.jar /opt/hadoop-2.2.0/
 
 SUNJDK_TGZ=jdk-8u121-linux-x64.tar.gz
 SUNJDK_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$SUNJDK_TGZ
-[ ! -e /opt/tarfiles/$SUNJDK_TGZ ] && sudo wget --no-check-certificate $SUNJDK_URL -O /opt/tarfiles/$SUNJDK_TGZ
+[ ! -e /opt/tarfiles/$SUNJDK_TGZ -o ! -s /opt/tarfiles/$SUNJDK_TGZ ] && \
+    sudo wget --no-check-certificate $SUNJDK_URL -O /opt/tarfiles/$SUNJDK_TGZ
 sudo tar xzf /opt/tarfiles/$SUNJDK_TGZ -C /opt
 sudo chown -R root:root /opt/jdk1.8.0_121
 sudo umount -l /usr/lib/jvm/sunjdk || :
