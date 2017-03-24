@@ -30,7 +30,7 @@ ID=`cat my_id`
 sudo iptables -t nat -F  ### will use our own rules ###
 
 for vm in `sudo lxc-ls` ; do
-    sudo lxc-stop -k -n $1 || :
+    sudo lxc-stop -k -n $vm || :
     sleep 0.1
 done
 
