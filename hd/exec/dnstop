@@ -28,15 +28,13 @@ if [ -z "$JAVA_HOME" ] ; then
     exit 1
 fi
 
-if [ -z "$HADOOP_HOME" ] ; then
-    echo "!!! ERROR !!! HADOOP_HOME not set... exit"
-    exit 1
-fi
+HADOOP_HOME=/srv/hd
+export HADOOP_HOME
 
-HADOOP_CONF_DIR=/tmp/hd/conf
+HADOOP_CONF_DIR=/srv/hd/conf
 export HADOOP_CONF_DIR
 
-HADOOP_LOG_DIR=/tmp/hd/logs
+HADOOP_LOG_DIR=/tmp
 export HADOOP_LOG_DIR
 
 HADOOP_PID_DIR=/tmp

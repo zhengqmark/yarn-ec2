@@ -28,15 +28,13 @@ if [ -z "$JAVA_HOME" ] ; then
     exit 1
 fi
 
-if [ -z "$HADOOP_HOME" ] ; then
-    echo "!!! ERROR !!! HADOOP_HOME not set... exit"
-    exit 1
-fi
+HADOOP_HOME=/srv/y
+export HADOOP_HOME
 
-HADOOP_CONF_DIR=/tmp/y/conf
+HADOOP_CONF_DIR=/srv/y/conf
 export HADOOP_CONF_DIR
 
-YARN_LOG_DIR=/tmp/y/logs
+YARN_LOG_DIR=/tmp
 export YARN_LOG_DIR
 
 $HADOOP_HOME/sbin/yarn-daemon.sh stop resourcemanager || exit 1
