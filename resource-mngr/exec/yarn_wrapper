@@ -23,11 +23,6 @@ if [ -z "$JAVA_HOME" ] ; then
     exit 1
 fi
 
-if [ -z "$HADOOP_HOME" ] ; then
-    echo "!!! ERROR !!! HADOOP_HOME not set... exit"
-    exit 1
-fi
-
 HADOOP_PREFIX=/srv/y
 export HADOOP_PREFIX
 
