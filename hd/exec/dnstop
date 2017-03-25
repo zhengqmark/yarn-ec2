@@ -28,11 +28,14 @@ if [ -z "$JAVA_HOME" ] ; then
     exit 1
 fi
 
-HADOOP_HOME=/srv/hd
-export HADOOP_HOME
+HADOOP_PREFIX=/srv/hd
+export HADOOP_PREFIX
 
-HADOOP_CONF_DIR=/srv/hd/conf
+HADOOP_CONF_DIR=$HADOOP_PREFIX/conf
 export HADOOP_CONF_DIR
+
+HADOOP_HDFS_HOME=$HADOOP_PREFIX
+export HADOOP_HDFS_HOME
 
 HADOOP_LOG_DIR=/tmp
 export HADOOP_LOG_DIR
