@@ -20,6 +20,8 @@
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
+CONF="/srv/hd/conf"
+
 ping ibuki -c 1 &>/dev/null
 
 if [ $? -ne 0 ] ; then
@@ -35,7 +37,7 @@ fi
 echo "-INFO- starting hdfs master... "
 parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
     --timeout 0 \
-    --hosts /tmp/hd/conf/boss \
+    --hosts $CONF/boss \
     --inline \
     "nnstart" || \
 exit 1
@@ -43,7 +45,7 @@ exit 1
 echo "-INFO- starting hdfs slaves... "
 parallel-ssh --extra-args "-t -t -q $SSH_OPTS" \
     --timeout 0 \
-    --hosts /tmp/hd/conf/slaves \
+    --hosts $CONF/slaves \
     --inline \
     "dnstart" || \
 exit 1
