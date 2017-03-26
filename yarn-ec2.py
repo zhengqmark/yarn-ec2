@@ -383,12 +383,35 @@ def init_security_group(sg, cidr):
 # Fails if there already instances running in the cluster's groups.
 def launch_cluster(conn, opts, cluster_name):
     if opts.identity_file is None:
-        print("ERROR: Must provide an identity file (-i) for ssh connections.", file=stderr)
+        print("ERROR: must provide an identity file (-i) for ssh connections.", file=stderr)
         sys.exit(1)
 
     if opts.key_pair is None:
-        print("ERROR: Must provide a key pair name (-k) to use on instances.", file=stderr)
+        print("ERROR: must provide a key pair name (-k) to use on instances.", file=stderr)
         sys.exit(1)
+
+    if opts.secondary_ips + 1 > get_nic_width(opts.instance_type):
+        print("ERROR: unable to allocate {c} secondary ip addresses for instance-type: {t}".format(
+            c=opts.secondary_ips, t=opts.instance_type))
+        sys.exit(1)
+
+    if opts.master_instance_type != "":
+        if opts.secondary_ips + 1 > get_nic_width(opts.master_instance_type):
+            print("ERROR: unable to allocate {c} secondary ip addresses for master-instance-type: {t}".format(
+                c=opts.secondary_ips, t=opts.master_instance_type))
+            sys.exit(1)
+
+    if opts.ebs_vol_num > 8:
+        print("ERROR: ebs-vol-num cannot be greater than 8", file=stderr)
+        sys.exit(1)
+
+    if opts.spot_price is None:
+        print("WARNING: not using spot instances... cost unnecessarily high", file=stderr)
+        print("")
+        print("hold for 10 seconds...")
+        print("")
+
+        time.sleep(10)
 
     user_data_content = None
     if opts.user_data:
@@ -1217,21 +1240,6 @@ def real_main():
                 print("slave instance virtualization type: {t}".format(
                     t=EC2_INSTANCE_TYPES[opts.instance_type]), file=stderr)
                 sys.exit(1)
-
-    if opts.secondary_ips + 1 > get_nic_width(opts.instance_type):
-        print("Error: unable to allocate {c} secondary ip addresses for instance-type: {t}".format(
-            c=opts.secondary_ips, t=opts.instance_type))
-        sys.exit(1)
-
-    if opts.master_instance_type != "":
-        if opts.secondary_ips + 1 > get_nic_width(opts.master_instance_type):
-            print("Error: unable to allocate {c} secondary ip addresses for master-instance-type: {t}".format(
-                c=opts.secondary_ips, t=opts.master_instance_type))
-            sys.exit(1)
-
-    if opts.ebs_vol_num > 8:
-        print("ebs-vol-num cannot be greater than 8", file=stderr)
-        sys.exit(1)
 
     # Prevent breaking ami_prefix (/, .git and startswith checks)
     # Prevent forks with non yarn-ec2 names for now.
