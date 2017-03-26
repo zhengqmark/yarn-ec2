@@ -408,10 +408,10 @@ def launch_cluster(conn, opts, cluster_name):
     if opts.spot_price is None:
         print("WARNING: not using spot instances... cost unnecessarily high", file=stderr)
         print("")
-        print("hold for 10 seconds...")
+        print("hold for 30 seconds...")
         print("")
 
-        time.sleep(10)
+        time.sleep(30)
 
     user_data_content = None
     if opts.user_data:
