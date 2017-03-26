@@ -25,6 +25,26 @@
     </property>
 
     <property>
+        <name>yarn.scheduler.minimum-allocation-mb</name>
+        <value>32</value>
+    </property>
+
+    <property>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+        <value>7168</value>
+    </property>
+
+    <property>
+        <name>yarn.scheduler.minimum-allocation-vcores</name>
+        <value>4</value>
+    </property>
+
+    <property>
+        <name>yarn.scheduler.maximum-allocation-vcores</name>
+        <value>12</value>
+    </property>
+
+    <property>
         <name>yarn.resourcemanager.am.max-attempts</name>
         <value>1</value>
     </property>
