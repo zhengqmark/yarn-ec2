@@ -288,6 +288,8 @@ function create_vm() {
     sudo cp -r /srv/yarn /srv/yarn-$VM_NAME
     sudo rm -f /srv/yarn-$VM_NAME/conf/yarn-site.xml
     sudo cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /srv/yarn-$VM_NAME/conf/
+    sudo sed -i "s/yarn.nodemanager.resource.cpu-vcores.value/$5/" /srv/yarn-$VM_NAME/conf/yarn-site.xml
+    sudo sed -i "s/yarn.nodemanager.hostname.value/$VM_NAME/" /srv/yarn-$VM_NAME/conf/yarn-site.xml
     echo "lxc.mount.entry = /srv/yarn-$VM_NAME srv/yarn none rw,bind,create=dir" | \
          sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
