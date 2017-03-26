@@ -153,7 +153,7 @@ cat hosts | fgrep r | fgrep h | cut -d' ' -f2 | tee /srv/yarn/conf/slaves
 echo "r0" | tee /srv/yarn/conf/boss
 sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /srv/yarn/conf/
 cat ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml | \
-    sed "s/yarn.resourcemanager.scheduler.class.value/`cat ~/etc/yarn-scheduler.txt`" \
+    sed "s/yarn.resourcemanager.scheduler.class.value/`cat ~/etc/yarn-scheduler.txt`/" \
         > /srv/yarn/conf/yarn-site.xml
 
 cat <<EOF | sudo tee /etc/environment
