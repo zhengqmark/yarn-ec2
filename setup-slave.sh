@@ -43,11 +43,10 @@ sleep 0.1
 
 sudo rm -rf /tmp/Jetty*
 sudo rm -rf /tmp/hadoop*
-sudo rm -rf /tmp/hd*
-sudo rm -rf /tmp/y*
+sudo rm -rf /tmp/yarn*
 
 sudo mkdir -p /opt/tarfiles
-sudo chmod a+rx /opt/tarfiles
+
 sudo rm -rf /opt/hadoop-*
 sudo rm -rf /opt/jdk*
 
@@ -83,73 +82,72 @@ sudo umount -l /usr/lib/jvm/sunjdk || :
 sudo mkdir -p /usr/lib/jvm/sunjdk
 sudo mount --bind -o ro /opt/jdk1.8.0_121 /usr/lib/jvm/sunjdk
 
-sudo mkdir /tmp/hd
-sudo mkdir /tmp/hd/logs
+sudo rm -rf /srv/hd*
+sudo rm -rf /srv/y*
 
-sudo ln -s /usr/local/hd/bin /tmp/hd/
-sudo ln -s /usr/local/hd/lib /tmp/hd/
-sudo ln -s /usr/local/hd/libexec /tmp/hd/
-sudo ln -s /usr/local/hd/sbin /tmp/hd/
-sudo ln -s /usr/local/hd/share /tmp/hd/
+sudo mkdir /srv/hd
 
-sudo mkdir /tmp/hd/conf
+sudo ln -s /usr/local/hd/bin /srv/hd/
+sudo ln -s /usr/local/hd/lib /srv/hd/
+sudo ln -s /usr/local/hd/libexec /srv/hd/
+sudo ln -s /usr/local/hd/sbin /srv/hd/
+sudo ln -s /usr/local/hd/share /srv/hd/
 
-sudo ln -s /usr/local/hd/etc/hadoop/* /tmp/hd/conf/
+sudo mkdir /srv/hd/conf
 
-sudo rm -f /tmp/hd/conf/core-site.xml
-sudo rm -f /tmp/hd/conf/hdfs-site.xml
-sudo rm -f /tmp/hd/conf/container*
-sudo rm -f /tmp/hd/conf/httpfs*
-sudo rm -f /tmp/hd/conf/mapred*
-sudo rm -f /tmp/hd/conf/yarn*
-sudo rm -f /tmp/hd/conf/*-scheduler.xml
-sudo rm -f /tmp/hd/conf/*example
-sudo rm -f /tmp/hd/conf/*cmd
+sudo ln -s /usr/local/hd/etc/hadoop/* /srv/hd/conf/
 
-sudo rm -f /tmp/hd/conf/slaves
-cat hosts | fgrep r | fgrep -v h | cut -d' ' -f2 | sudo tee /tmp/hd/conf/slaves
-echo "r0" | sudo tee /tmp/hd/conf/boss
-sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/hd/conf/
-sudo cp ~/share/yarn-ec2/hd/conf/hdfs-site.xml /tmp/hd/conf/
+sudo rm -f /srv/hd/conf/core-site.xml
+sudo rm -f /srv/hd/conf/hdfs-site.xml
+sudo rm -f /srv/hd/conf/container*
+sudo rm -f /srv/hd/conf/httpfs*
+sudo rm -f /srv/hd/conf/mapred*
+sudo rm -f /srv/hd/conf/yarn*
+sudo rm -f /srv/hd/conf/*-scheduler.xml
+sudo rm -f /srv/hd/conf/*example
+sudo rm -f /srv/hd/conf/*cmd
 
-sudo mkdir /tmp/y
-sudo mkdir /tmp/y/logs
+sudo rm -f /srv/hd/conf/slaves
+cat hosts | fgrep r | fgrep -v h | cut -d' ' -f2 | sudo tee /srv/hd/conf/slaves
+echo "r0" | sudo tee /srv/hd/conf/boss
+sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /srv/hd/conf/
+sudo cp ~/share/yarn-ec2/hd/conf/hdfs-site.xml /srv/hd/conf/
 
-sudo ln -s /usr/local/hd/bin /tmp/y/
-sudo ln -s /usr/local/hd/lib /tmp/y/
-sudo ln -s /usr/local/hd/libexec /tmp/y/
-sudo ln -s /usr/local/hd/sbin /tmp/y/
-sudo ln -s /usr/local/hd/share /tmp/y/
-sudo ln -s /usr/local/hd/hadoop-yarn-applications-* /tmp/y/
-sudo ln -s /usr/local/hd/bt* /tmp/y/
-sudo ln -s /usr/local/hd/ft* /tmp/y/
-sudo ln -s /usr/local/hd/sp* /tmp/y/
+sudo mkdir /srv/y
 
-sudo mkdir /tmp/y/conf
+sudo ln -s /usr/local/hd/bin /srv/y/
+sudo ln -s /usr/local/hd/lib /srv/y/
+sudo ln -s /usr/local/hd/libexec /srv/y/
+sudo ln -s /usr/local/hd/sbin /srv/y/
+sudo ln -s /usr/local/hd/share /srv/y/
+sudo ln -s /usr/local/hd/hadoop-yarn-applications-* /srv/y/
+sudo ln -s /usr/local/hd/bt* /srv/y/
+sudo ln -s /usr/local/hd/ft* /srv/y/
+sudo ln -s /usr/local/hd/sp* /srv/y/
 
-sudo ln -s /usr/local/hd/etc/hadoop/* /tmp/y/conf/
+sudo mkdir /srv/y/conf
 
-sudo rm -f /tmp/y/conf/core-site.xml
-sudo rm -r /tmp/y/conf/yarn-site.xml
-sudo rm -f /tmp/y/conf/hdfs*
-sudo rm -f /tmp/y/conf/httpfs*
-sudo rm -f /tmp/y/conf/mapred*
-sudo rm -f /tmp/y/conf/*example
-sudo rm -f /tmp/y/conf/*cmd
+sudo ln -s /usr/local/hd/etc/hadoop/* /srv/y/conf/
 
-sudo rm -f /tmp/y/conf/slaves
-cat hosts | fgrep r | fgrep h | cut -d' ' -f2 | tee /tmp/y/conf/slaves
-echo "r0" | tee /tmp/y/conf/boss
-sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /tmp/y/conf/
-sudo cp ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /tmp/y/conf/
+sudo rm -f /srv/y/conf/core-site.xml
+sudo rm -r /srv/y/conf/yarn-site.xml
+sudo rm -f /srv/y/conf/hdfs*
+sudo rm -f /srv/y/conf/httpfs*
+sudo rm -f /srv/y/conf/mapred*
+sudo rm -f /srv/y/conf/*example
+sudo rm -f /srv/y/conf/*cmd
+
+sudo rm -f /srv/y/conf/slaves
+cat hosts | fgrep r | fgrep h | cut -d' ' -f2 | tee /srv/y/conf/slaves
+echo "r0" | tee /srv/y/conf/boss
+sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /srv/y/conf/
+sudo cp ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml /srv/y/conf/
 
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/sunjdk/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+
 JAVA_HOME="/usr/lib/jvm/sunjdk"
 
-HADOOP_HOME="/usr/local/hd"
-
-HADOOP_HEAPSIZE="2000"
 
 EOF
 
@@ -274,10 +272,10 @@ function create_vm() {
     sudo chown -R root:root /mnt/$VM_NAME/rootfs/root/.ssh
     sudo cp -f /etc/ssh/ssh_config /mnt/$VM_NAME/rootfs/etc/ssh/
     sudo cp -f /etc/profile /mnt/$VM_NAME/rootfs/etc/
-    sudo cp -r /tmp/y /tmp/y-$VM_NAME
-    sudo rm -f /tmp/y-$VM_NAME/conf/yarn-site.xml
-    sudo cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /tmp/y-$VM_NAME/conf/
-    echo "lxc.mount.entry = /tmp/y-$VM_NAME tmp/y none rw,bind,create=dir" | \
+    sudo cp -r /srv/y /srv/y-$VM_NAME
+    sudo rm -f /srv/y-$VM_NAME/conf/yarn-site.xml
+    sudo cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /srv/y-$VM_NAME/conf/
+    echo "lxc.mount.entry = /srv/y-$VM_NAME srv/y none rw,bind,create=dir" | \
          sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
