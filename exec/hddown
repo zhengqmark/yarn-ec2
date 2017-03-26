@@ -20,7 +20,7 @@
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-CONF="/srv/hd/conf"
+CONF="/srv/hdfs/conf"
 
 ping ibuki -c 1 &>/dev/null
 
