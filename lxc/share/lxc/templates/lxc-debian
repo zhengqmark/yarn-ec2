@@ -293,7 +293,7 @@ iputils-ping,\
 openssh-server,\
 openssh-client,\
 openmpi-bin,\
-libgomp,\
+libgomp1,\
 pssh,\
 sudo,\
 csh,\
