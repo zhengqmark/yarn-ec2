@@ -46,6 +46,6 @@ export HADOOP_PID_DIR
 HADOOP_HEAPSIZE=2000
 export HADOOP_HEAPSIZE
 
-$HADOOP_HOME/sbin/hadoop-daemon.sh --script hdfs start namenode || exit 1
+$HADOOP_PREFIX/sbin/hadoop-daemon.sh --script hdfs start namenode || exit 1
 
 exit 0
