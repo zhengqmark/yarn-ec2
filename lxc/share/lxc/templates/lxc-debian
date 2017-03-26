@@ -108,11 +108,9 @@ EOF
     # set JAVA_HOME
     cat <<EOF > $rootfs/etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/sunjdk/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+
 JAVA_HOME="/usr/lib/jvm/sunjdk"
 
-HADOOP_HOME="/usr/local/hd"
-
-YARN_HEAPSIZE="1000"
 EOF
 
     # but first reconfigure locales - so we get no noisy perl-warnings
