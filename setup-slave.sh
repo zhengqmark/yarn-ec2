@@ -123,6 +123,7 @@ sudo ln -s /usr/local/hd/sbin /srv/y/
 sudo ln -s /usr/local/hd/share /srv/y/
 sudo ln -s /usr/local/hd/hadoop-yarn-applications-* /srv/y/
 sudo ln -s /usr/local/hd/bt* /srv/y/
+sudo ln -s /usr/local/hd/cg* /srv/y/
 sudo ln -s /usr/local/hd/ft* /srv/y/
 sudo ln -s /usr/local/hd/sp* /srv/y/
 
