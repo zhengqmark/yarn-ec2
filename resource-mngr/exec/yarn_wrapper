@@ -23,7 +23,7 @@ if [ -z "$JAVA_HOME" ] ; then
     exit 1
 fi
 
-HADOOP_PREFIX=/srv/y
+HADOOP_PREFIX=/srv/yarn
 export HADOOP_PREFIX
 
 HADOOP_CONF_DIR=$HADOOP_PREFIX/conf
