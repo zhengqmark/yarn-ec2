@@ -83,6 +83,13 @@ sudo umount -l /usr/lib/jvm/sunjdk || :
 sudo mkdir -p /usr/lib/jvm/sunjdk
 sudo mount --bind -o ro /opt/jdk1.8.0_121 /usr/lib/jvm/sunjdk
 
+THRIFT_TGZ=thrift-0.9.1.tar.gz
+THRIFT_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$THRIFT_TGZ
+[ ! -e /opt/tarfiles/$THRIFT_TGZ -o ! -s /opt/tarfiles/$THRIFT_TGZ ] && \
+    sudo wget --no-check-certificate $THRIFT_URL -O /opt/tarfiles/$THRIFT_TGZ
+sudo tar xzf /opt/tarfiles/$THRIFT_TGZ -C /opt
+sudo chown -R root:root /opt/thrift-0.9.1
+
 sudo rm -rf /srv/hd*
 sudo rm -rf /srv/y*
 
