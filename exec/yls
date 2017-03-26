@@ -22,7 +22,7 @@ SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 YCMD="yarn_wrapper node -all -list"
 
-CONF="/tmp/y/conf"
+CONF="/srv/y/conf"
 
 ping ibuki -c 1 &>/dev/null
 
