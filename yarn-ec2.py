@@ -780,8 +780,8 @@ def setup_spark_cluster(master, opts):
     ssh(master, opts, "/root/share/yarn-ec2/setup.sh", force_root=True)
     ssh(master, opts, "hdup", force_root=True)
     ssh(master, opts, "yup", force_root=True)
-    print(">> Hadoop HDFS is available at ...\n{u}:50070".format(u=get_dns_name(master, opts.private_ips)))
-    print(">> Hadoop YARN is available at ...\n{u}:8088".format(u=get_dns_name(master, opts.private_ips)))
+    print(">> Hadoop HDFS is available at ...\n{u}:50070".format(u=master))
+    print(">> Hadoop YARN is available at ...\n{u}:8088".format(u=master))
 
 
 def is_ssh_available(host, opts, print_ssh_output=True):
