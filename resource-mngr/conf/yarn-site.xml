@@ -48,4 +48,29 @@
         <name>yarn.resourcemanager.am.max-attempts</name>
         <value>1</value>
     </property>
+
+    <property>
+        <name>yarn.tetris.hostnames</name>
+        <value>yarn.tetris.hostnames.value</value>
+    </property>
+
+    <property>
+        <name>yarn.tetris.AMhostname</name>
+        <value>r0h0</value>
+    </property>
+
+    <property>
+        <name>yarn.tetris.TetrischedAddr</name>
+        <value>r0</value>
+    </property>
+
+    <property>
+        <name>yarn.tetris.TetrischedPort</name>
+        <value>9091</value>
+    </property>
+
+    <property>
+        <name>yarn.tetris.YARNport</name>
+        <value>9090</value>
+    </property>
 </configuration>

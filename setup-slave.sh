@@ -156,9 +156,6 @@ sudo rm -f /srv/yarn/conf/slaves
 cat hosts | fgrep r | fgrep h | cut -d' ' -f2 | tee /srv/yarn/conf/slaves
 echo "r0" | tee /srv/yarn/conf/boss
 sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /srv/yarn/conf/
-cat ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml | \
-    sed "s/yarn.resourcemanager.scheduler.class.value/`cat ~/etc/yarn-scheduler.txt`/" \
-        > /srv/yarn/conf/yarn-site.xml
 
 cat <<EOF | sudo tee /etc/environment
 PATH="/usr/local/sbin:/usr/local/bin:/usr/lib/jvm/sunjdk/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
@@ -311,6 +308,16 @@ function create_vm() {
 }
 
 RACK_ID="$ID"
+if [ $RACK_ID -eq 0 ] ; then
+    sudo cp ~/share/yarn-ec2/resource-mngr/conf/yarn-site.xml \
+        /srv/yarn/conf/yarn-site.xml
+    sudo sed -i "s/yarn.resourcemanager.scheduler.class.value/`cat ~/etc/yarn-scheduler.txt`/" \
+        /srv/yarn/conf/yarn-site.xml
+    WORKER=`cat hosts | fgrep r | fgrep h | fgrep -v r0 | cut -d' ' -f2 | tr '\n' ','`
+    sudo sed -i "s/yarn.tetris.hostnames.value/${WORKER:0:-1}/" \
+        /srv/yarn/conf/yarn-site.xml
+fi
+
 HOST_ID=0
 for ip in `cat rack-$ID/vmips` ; do
     NODE_ID=$(( HOST_ID + RACK_ID * 10 + 100))
