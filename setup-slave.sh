@@ -154,8 +154,8 @@ sudo rm -f /srv/yarn/conf/*example
 sudo rm -f /srv/yarn/conf/*cmd
 
 sudo rm -f /srv/yarn/conf/slaves
-cat hosts | fgrep r | fgrep h | cut -d' ' -f2 | tee /srv/yarn/conf/slaves
-echo "r0" | tee /srv/yarn/conf/boss
+cat hosts | fgrep r | fgrep h | cut -d' ' -f2 | sudo tee /srv/yarn/conf/slaves
+echo "r0" | sudo tee /srv/yarn/conf/boss
 sudo cp ~/share/yarn-ec2/hd/conf/core-site.xml /srv/yarn/conf/
 
 cat <<EOF | sudo tee /etc/environment
