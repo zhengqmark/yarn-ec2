@@ -61,6 +61,7 @@ sudo chown -R root:root /opt/hadoop-2.2.0
 sudo umount -l /usr/local/hd || :
 sudo mkdir -p /usr/local/hd
 sudo mount --bind -o ro /opt/hadoop-2.2.0 /usr/local/hd
+
 TAPACK_TGZ=yarn-2.2.0-ta-pack-v1.tar.gz
 TAPACK_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$TAPACK_TGZ
 [ ! -e /opt/tarfiles/$TAPACK_TGZ -o ! -s /opt/tarfiles/$TAPACK_TGZ ] && \
