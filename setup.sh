@@ -50,6 +50,8 @@ function setup_rack() {
     RACKDIR=`echo rack-"$1"`
     mkdir -p $RACKDIR
     VMINFO=`cat ~/etc/yarn-topo.txt | fgrep $RACKDIR`
+    echo $VMINFO | cut -d' ' -f6 > $RACKDIR/vmnvcpus
+    echo $VMINFO | cut -d' ' -f5 > $RACKDIR/vmvmem
     echo $VMINFO | cut -d' ' -f4 > $RACKDIR/vmncpus
     echo $VMINFO | cut -d' ' -f3 > $RACKDIR/vmmem
     H=0

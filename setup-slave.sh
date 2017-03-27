@@ -48,7 +48,8 @@ sudo rm -rf /tmp/yarn*
 sudo mkdir -p /opt/tarfiles
 
 sudo rm -rf /opt/yarn*
-sudo rm -rf /opt/hadoop-*
+sudo rm -rf /opt/thrift*
+sudo rm -rf /opt/hadoop*
 sudo rm -rf /opt/jdk*
 
 HADOOP_TGZ=hadoop-2.2.0.tar.gz
@@ -280,7 +281,7 @@ sudo cp -f ~/share/yarn-ec2/lxc/etc/default/* /etc/default/
 sudo cp -f ~/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
 
 function create_vm() {
-### @param rack_id, host_id, ip, mem, ncpus ###
+### @param rack_id, host_id, ip, mem, ncpus, vmem, nvcores ###
     VM_NAME=`echo r"$1"h"$2"`
     sudo lxc-create -n $VM_NAME -t debian -- \
         --release wheezy  ### --packages ??? ###
@@ -291,15 +292,16 @@ function create_vm() {
     sudo cp -r /srv/yarn /srv/yarn-$VM_NAME
     sudo rm -f /srv/yarn-$VM_NAME/conf/yarn-site.xml
     sudo cp ~/share/yarn-ec2/node-mngr/conf/yarn-site.xml /srv/yarn-$VM_NAME/conf/
-    sudo sed -i "s/yarn.nodemanager.resource.cpu-vcores.value/$5/" /srv/yarn-$VM_NAME/conf/yarn-site.xml
     sudo sed -i "s/yarn.nodemanager.hostname.value/$VM_NAME/" /srv/yarn-$VM_NAME/conf/yarn-site.xml
+    sudo sed -i "s/yarn.nodemanager.resource.cpu-vcores.value/$7/" /srv/yarn-$VM_NAME/conf/yarn-site.xml
+    sudo sed -i "s/yarn.nodemanager.resource.memory-mb.value/$6/" /srv/yarn-$VM_NAME/conf/yarn-site.xml
     echo "lxc.mount.entry = /srv/yarn-$VM_NAME srv/yarn none rw,bind,create=dir" | \
          sudo tee -a /mnt/$VM_NAME/config
     sudo sed -i "/lxc.network.ipv4 =/c lxc.network.ipv4 = $3" \
         /mnt/$VM_NAME/config
-    sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = $4" \
+    sudo sed -i "/lxc.cgroup.memory.max_usage_in_bytes =/c lxc.cgroup.memory.max_usage_in_bytes = ${4}M" \
         /mnt/$VM_NAME/config
-    sudo sed -i "/lxc.cgroup.memory.limit_in_bytes =/c lxc.cgroup.memory.limit_in_bytes = $4" \
+    sudo sed -i "/lxc.cgroup.memory.limit_in_bytes =/c lxc.cgroup.memory.limit_in_bytes = ${4}M" \
         /mnt/$VM_NAME/config
     core_begin=$(( $2 * $5 ))
     core_end=$(( core_begin + $5 - 1 ))
@@ -314,7 +316,8 @@ for ip in `cat rack-$ID/vmips` ; do
     NODE_ID=$(( HOST_ID + RACK_ID * 10 + 100))
     sudo sed -i "s/$ip/192.168.1.$NODE_ID/" /etc/hosts
     create_vm $RACK_ID $HOST_ID "192.168.1.$NODE_ID/24 192.168.1.255" \
-        "`cat rack-$ID/vmmem`" "`cat rack-$ID/vmncpus`"
+        "`cat rack-$ID/vmmem`" "`cat rack-$ID/vmncpus`" \
+        "`cat rack-$ID/vmvmem`" "`cat rack-$ID/vmnvcpus`"
     HOST_ID=$(( HOST_ID + 1 ))
 done
 
