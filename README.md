@@ -1,10 +1,15 @@
-# YARN-ec2
+**IT WORKS**
 
-**It works**
+YARN-ec2
+========
 
 Setup YARN on a set of ec2 instances in a single highly-automated step ^_^
 
+http://www.cs.cmu.edu/~15719/
+
 [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](LICENSE)
+
+## USAGE
 
 ```
 Usage: yarn-ec2 [options] <action> <cluster_name>
