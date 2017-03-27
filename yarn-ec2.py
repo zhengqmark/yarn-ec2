@@ -169,7 +169,7 @@ def parse_args():
         "-z", "--zone", default="us-east-1a",
         help="Availability zone to launch instances in, or 'all' to spread " +
              "slaves across multiple (an additional $0.01/Gb for bandwidth" +
-             "between zones applies) (default: a single zone chosen at random)")
+             "between zones applies) (default: %default)")
     parser.add_option(
         "-a", "--ami",
         help="Amazon Machine Image ID to use")
@@ -215,9 +215,9 @@ def parse_args():
              "instances into. Assumes placement group is already " +
              "created.")
     parser.add_option(
-        "--spot-price", metavar="PRICE", type="float", default=1.00,
+        "--spot-price", metavar="PRICE", type="float", default=1.0,
         help="If specified, launch slaves as spot instances with the given " +
-             "maximum price (in dollars)")
+             "maximum price (in dollars) (default: %default)")
     parser.add_option(
         "-u", "--user", default="ubuntu",
         help="The SSH user you want to connect as (default: %default)")
