@@ -89,6 +89,9 @@ THRIFT_URL=https://s3.amazonaws.com/ubuntu-ursus-packages/$THRIFT_TGZ
     sudo wget --no-check-certificate $THRIFT_URL -O /opt/tarfiles/$THRIFT_TGZ
 sudo tar xzf /opt/tarfiles/$THRIFT_TGZ -C /opt
 sudo chown -R root:root /opt/thrift-0.9.1
+sudo umount -l /usr/local/thrift || :
+sudo mkdir -p /usr/local/thrift
+sudo mount --bind -o ro /opt/thrift-0.9.1 /usr/local/thrift
 
 sudo rm -rf /srv/hdfs*
 sudo rm -rf /srv/yarn*
