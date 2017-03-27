@@ -143,7 +143,7 @@ def parse_args():
               + "<action> can be: launch, destroy, login, get-master, stop, start")
 
     parser.add_option(
-        "-s", "--slaves", type="int", default=1,
+        "-s", "--slaves", type="int", default=4,
         help="Number of slaves to launch (default: %default)")
     parser.add_option(
         "-k", "--key-pair",
