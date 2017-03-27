@@ -94,6 +94,7 @@ sudo chown -R root:root /opt/thrift-0.9.1
 sudo umount -l /usr/local/thrift || :
 sudo mkdir -p /usr/local/thrift
 sudo mount --bind -o ro /opt/thrift-0.9.1 /usr/local/thrift
+sudo cp /opt/thrift-0.9.1/share/*.jar /opt/hadoop-2.2.0/share/hadoop/yarn/lib/
 
 sudo rm -rf /srv/hdfs*
 sudo rm -rf /srv/yarn*
