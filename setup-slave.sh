@@ -180,7 +180,7 @@ CIDR=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/
 echo "$CIDR" > my_cidr
 PRIVATE_IPS=`curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/local-ipv4s`
 echo "$PRIVATE_IPS" > my_ips
-OFFSET=`cat all-nodes | fgrep -n $PRIMARY_IP | cut -d: -f1`
+OFFSET=`cat all-nodes | grep -n ^$PRIMARY_IP$ | cut -d: -f1`
 ID=$(( OFFSET - 1 ))
 echo "$ID" > my_id
 
