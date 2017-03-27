@@ -215,7 +215,7 @@ def parse_args():
              "instances into. Assumes placement group is already " +
              "created.")
     parser.add_option(
-        "--spot-price", metavar="PRICE", type="float",
+        "--spot-price", metavar="PRICE", type="float", default=1.00,
         help="If specified, launch slaves as spot instances with the given " +
              "maximum price (in dollars)")
     parser.add_option(
