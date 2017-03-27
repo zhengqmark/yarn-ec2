@@ -25,7 +25,7 @@ exec 1>&2
 sudo apt-get update && sudo apt-get -y upgrade
 
 sudo apt-get install -y csh wget curl vim git realpath tree htop libsnappy1v5 \
-    lxc lvm2 xfsprogs pssh
+    lxc lvm2 xfsprogs pssh gcc g++ make gdb
 
 pushd ~/var/yarn-ec2 > /dev/null
 
