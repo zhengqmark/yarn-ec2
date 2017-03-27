@@ -166,7 +166,7 @@ def parse_args():
         "-r", "--region", default="us-east-1",
         help="EC2 region used to launch instances in, or to find them in (default: %default)")
     parser.add_option(
-        "-z", "--zone", default="",
+        "-z", "--zone", default="us-east-1a",
         help="Availability zone to launch instances in, or 'all' to spread " +
              "slaves across multiple (an additional $0.01/Gb for bandwidth" +
              "between zones applies) (default: a single zone chosen at random)")
