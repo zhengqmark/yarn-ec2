@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -22,6 +22,7 @@
 # the underlying Python script.
 YARN_EC2_DIR="$(dirname "$0")"
 
-python -Wdefault "${YARN_EC2_DIR}/yarn-ec2.py" "$@"
+python -Wdefault "${YARN_EC2_DIR}/yarn-ec2.py" "$@" |& tee yarn-ec2.log
 
 exit 0
+
