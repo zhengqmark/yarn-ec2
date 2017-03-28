@@ -22,7 +22,7 @@
 # the underlying Python script.
 YARN_EC2_DIR="$(dirname "$0")"
 
-python -Wdefault "${YARN_EC2_DIR}/yarn-ec2.py" "$@" |& tee yarn-ec2.log
+python -Wdefault "${YARN_EC2_DIR}/yarn-ec2.py" "$@" |& tee /tmp/yarn-ec2.log
 
 exit 0
 
