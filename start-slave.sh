@@ -38,7 +38,7 @@ RACK_ID="$ID"
 HOST_ID=0
 for ip in `cat rack-$ID/vmips` ; do
     NODE_ID=$(( HOST_ID + RACK_ID * 10 + 100))
-    cat /etc/hosts | fgrep 192.168.1.$NODE_ID
+    cat /etc/hosts | fgrep "192.168.1.$NODE_ID "
     sudo iptables -t nat -A PREROUTING -s $CIDR -d $ip -j DNAT --to 192.168.1.$NODE_ID
     sudo iptables -t nat -A POSTROUTING -s 192.168.1.$NODE_ID -d $CIDR -j SNAT --to $ip
     VM_NAME=`echo r"$RACK_ID"h"$HOST_ID"`
