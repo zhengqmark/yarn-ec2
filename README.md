@@ -20,7 +20,7 @@ Options:
   --version             show program's version number and exit
   -h, --help            show this help message and exit
   -s SLAVES, --slaves=SLAVES
-                        Number of slaves to launch (default: 1)
+                        Number of slaves to launch (default: 4)
   -k KEY_PAIR, --key-pair=KEY_PAIR
                         Key pair to use on instances
   -i IDENTITY_FILE, --identity-file=IDENTITY_FILE
@@ -30,8 +30,9 @@ Options:
                         you can configure additional, named profiles by using
                         this option (default: none)
   -t INSTANCE_TYPE, --instance-type=INSTANCE_TYPE
-                        Type of instance to launch (default: c3.4xlarge).
-                        WARNING: must be 64-bit; small instances won't work
+                        Type of instance to launch (default: c4.4xlarge).
+                        WARNING: must be 64-bit; small instances won't work in
+                        production
   -m MASTER_INSTANCE_TYPE, --master-instance-type=MASTER_INSTANCE_TYPE
                         Master instance type (leave empty for same as
                         instance-type)
@@ -40,8 +41,8 @@ Options:
                         them in (default: us-east-1)
   -z ZONE, --zone=ZONE  Availability zone to launch instances in, or 'all' to
                         spread slaves across multiple (an additional $0.01/Gb
-                        for bandwidthbetween zones applies) (default: a single
-                        zone chosen at random)
+                        for bandwidthbetween zones applies) (default: us-east-
+                        1a)
   -a AMI, --ami=AMI     Amazon Machine Image ID to use
   -v YARN_VERSION, --yarn-version=YARN_VERSION
                         Version of YARN to use: 'X.Y.Z' or a specific git hash
@@ -72,7 +73,7 @@ Options:
                         Which placement group to try and launch instances
                         into. Assumes placement group is already created.
   --spot-price=PRICE    If specified, launch slaves as spot instances with the
-                        given maximum price (in dollars)
+                        given maximum price (in dollars) (default: 1.0)
   -u USER, --user=USER  The SSH user you want to connect as (default: ubuntu)
   --delete-groups       When destroying a cluster, delete the security groups
                         that were created
