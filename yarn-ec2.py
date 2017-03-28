@@ -807,8 +807,8 @@ def setup_spark_cluster(master, opts):
     time.sleep(5)
 
     ssh(master, opts, "yls", force_root=True)
-    print(">> Hadoop HDFS is available at ...\n  {u}:50070".format(u=master))
-    print(">> Hadoop YARN is available at ...\n  {u}:8088".format(u=master))
+    print(">> Hadoop HDFS is available at r0:50070")
+    print(">> Hadoop YARN is available at r0:8088")
 
 
 def is_ssh_available(host, opts, print_ssh_output=True):
