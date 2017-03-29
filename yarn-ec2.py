@@ -383,11 +383,11 @@ def init_security_group(sg, cidr):
 # Fails if there already instances running in the cluster's groups.
 def launch_cluster(conn, opts, cluster_name):
     if opts.identity_file is None:
-        print("ERROR: must provide an identity file (-i) for ssh connections.", file=stderr)
+        print("ERROR: must provide an identity file (-i) for ssh connections", file=stderr)
         sys.exit(1)
 
     if opts.key_pair is None:
-        print("ERROR: must provide a key pair name (-k) to use on instances.", file=stderr)
+        print("ERROR: must provide a key pair name (-k) to use on instances", file=stderr)
         sys.exit(1)
 
     if opts.secondary_ips + 1 > get_nic_width(opts.instance_type):
@@ -401,9 +401,25 @@ def launch_cluster(conn, opts, cluster_name):
                 c=opts.secondary_ips, t=opts.master_instance_type))
             sys.exit(1)
 
+    if opts.vpc_id is None:
+        print("ERROR: must specify a vpc to launch instances", file=stderr)
+        sys.exit(1)
+
+    if opts.subnet_id is None:
+        print("ERROR: must specify a subnet to launch instances", file=stderr)
+        sys.exit(1)
+
     if opts.ebs_vol_num > 8:
         print("ERROR: ebs-vol-num cannot be greater than 8", file=stderr)
         sys.exit(1)
+
+    if opts.ebs_vol_num != 0:
+        print("WARNING: will use EBS... cost unnecessarily high", file=stderr)
+        print("")
+        print("hold for 30 seconds...")
+        print("")
+
+        time.sleep(30)
 
     if opts.spot_price is None:
         print("WARNING: not using spot instances... cost unnecessarily high", file=stderr)
