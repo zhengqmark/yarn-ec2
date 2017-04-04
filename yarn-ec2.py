@@ -203,7 +203,7 @@ def parse_args():
         "--ebs-vol-type", default="standard",
         help="EBS volume type (e.g. 'gp2', 'standard').")
     parser.add_option(
-        "--ebs-vol-num", type="int", default=1,
+        "--ebs-vol-num", type="int", default=0,
         help="Number of EBS volumes to attach to each node as /vol[x]. " +
              "The volumes will be deleted when the instances terminate. " +
              "Only possible on EBS-backed AMIs. " +
@@ -413,8 +413,8 @@ def launch_cluster(conn, opts, cluster_name):
         print("ERROR: ebs-vol-num cannot be greater than 8", file=stderr)
         sys.exit(1)
 
-    if opts.ebs_vol_num != 0:
-        print("WARNING: will use EBS... cost unnecessarily high", file=stderr)
+    if opts.ebs_vol_num != 0 and opts.ebs_vol_size != 0:
+        print("WARNING: will allocate EBS volumns... cost unnecessarily high", file=stderr)
         print("")
         print("hold for 30 seconds...")
         print("")
