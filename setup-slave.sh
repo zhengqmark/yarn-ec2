@@ -102,6 +102,8 @@ cat <<EOF | sudo tee /etc/ld.so.conf.d/libthrift.conf
 
 EOF
 
+sudo ldconfig
+
 sudo rm -rf /srv/hdfs*
 sudo rm -rf /srv/yarn*
 
