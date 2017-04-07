@@ -292,13 +292,13 @@ function setup_vm_iptables() {
     VM_NAME=`echo r"$1"h"$2"`
     IFCONF="/mnt/$VM_NAME/rootfs/etc/network/interfaces"
     echo "post-up iptables -t nat -F" | sudo tee -a $IFCONF
-    for l in `cat hosts | fgrep h` ; do
-        PEER_NAME=`echo $l | cut -d' ' -f2`
+    cat hosts | try_fgrep h | while read ln ; do
+        PEER_NAME=`echo $ln | cut -d' ' -f2`
         PEER_RACK=`echo $PEER_NAME | cut -dr -f2 | cut -dh -f1`
         PEER_HOST=`echo $PEER_NAME | cut -dr -f2 | cut -dh -f2`
         if [ $1 -ne $PEER_RACK ] ; then
             PEER_ID=$(( PEER_HOST + PEER_RACK * 10 + 100))
-            PEER_IP=`echo $l | cut -d' ' -f1`
+            PEER_IP=`echo $ln | cut -d' ' -f1`
             echo -n "post-up iptables -t nat -A OUTPUT " | sudo tee -a $IFCONF
             echo "-d 192.168.1.$PEER_ID -j DNAT --to $PEER_IP" | sudo tee -a $IFCONF
         fi
