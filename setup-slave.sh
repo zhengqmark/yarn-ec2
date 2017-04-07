@@ -301,6 +301,8 @@ function setup_vm_iptables() {
             PEER_IP=`echo $ln | cut -d' ' -f1`
             echo -n "post-up iptables -t nat -A OUTPUT " | sudo tee -a $IFCONF
             echo "-d 192.168.1.$PEER_ID -j DNAT --to $PEER_IP" | sudo tee -a $IFCONF
+            echo -n "post-up iptables -t nat -A INPUT " | sudo tee -a $IFCONF
+            echo "-s $PEER_IP -j SNAT --to 192.168.1.$PEER_ID" | sudo tee -a $IFCONF
         fi
     done
 }
@@ -333,6 +335,7 @@ function create_vm() {
     VM_CPUS=`echo "$core_begin"-"$core_end"`
     sudo sed -i "/lxc.cgroup.cpuset.cpus =/c lxc.cgroup.cpuset.cpus = $VM_CPUS" \
         /mnt/$VM_NAME/config
+    cat vmhosts | sudo tee -a /mnt/$VM_NAME/rootfs/etc/hosts
     setup_vm_iptables $1 $2
 }
 

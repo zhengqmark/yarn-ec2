@@ -43,6 +43,7 @@ echo "$MASTERS" | sed '/^$/d' > masters
 echo "$SLAVES" | sed '/^$/d' > slaves
 cat masters slaves > all-nodes
 NRACKS=`cat all-nodes | wc -l`
+rm -f vmhosts
 rm -f hosts
 
 function setup_rack() {
@@ -54,12 +55,15 @@ function setup_rack() {
     echo $VMINFO | cut -d' ' -f5 > $RACKDIR/vmvmem
     echo $VMINFO | cut -d' ' -f4 > $RACKDIR/vmncpus
     echo $VMINFO | cut -d' ' -f3 > $RACKDIR/vmmem
+    R=$1
     H=0
     CAP=`echo $VMINFO | cut -d' ' -f2`
     echo "$2" | head -n $CAP > $RACKDIR/vmips
     echo `cat all-nodes | head -n $(( $1 + 1 )) | tail -n 1` r"$1" >> hosts
     for ip in `cat $RACKDIR/vmips` ; do
-        echo $ip r"$1"h"$H" >> hosts
+        SEQ=$(( H + R * 10 + 100 ))
+        echo 192.168.1.$SEQ r"$R"h"$H" >> vmhosts
+        echo $ip r"$R"h"$H" >> hosts
         H=$(( H + 1 ))
     done
 }
