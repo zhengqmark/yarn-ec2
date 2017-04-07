@@ -287,6 +287,24 @@ sudo cp -f ~/share/yarn-ec2/lxc/share/lxc/templates/* /usr/share/lxc/templates/
 sudo cp -f ~/share/yarn-ec2/lxc/etc/default/* /etc/default/
 sudo cp -f ~/share/yarn-ec2/lxc/etc/lxc/* /etc/lxc/
 
+function setup_vm_iptables() {
+### @param rack_id, host_id ###
+    VM_NAME=`echo r"$1"h"$2"`
+    IFCONF="/mnt/$VM_NAME/rootfs/etc/network/interfaces"
+    echo "post-up iptables -t nat -F" | sudo tee -a $IFCONF
+    for l in `cat hosts | fgrep h` ; do
+        PEER_NAME=`echo $l | cut -d' ' -f2`
+        PEER_RACK=`echo $PEER_NAME | cut -dr -f2 | cut -dh -f1`
+        PEER_HOST=`echo $PEER_NAME | cut -dr -f2 | cut -dh -f2`
+        if [ $1 -ne $PEER_RACK ] ; then
+            PEER_ID=$(( PEER_HOST + PEER_RACK * 10 + 100))
+            PEER_IP=`echo $l | cut -d' ' -f1`
+            echo -n "post-up iptables -t nat -A OUTPUT " | sudo tee -a $IFCONF
+            echo "-d 192.168.1.$PEER_ID -j DNAT --to $PEER_IP" | sudo tee -a $IFCONF
+        fi
+    done
+}
+
 function create_vm() {
 ### @param rack_id, host_id, ip, mem, ncpus, vmem, nvcores ###
     VM_NAME=`echo r"$1"h"$2"`
@@ -315,6 +333,7 @@ function create_vm() {
     VM_CPUS=`echo "$core_begin"-"$core_end"`
     sudo sed -i "/lxc.cgroup.cpuset.cpus =/c lxc.cgroup.cpuset.cpus = $VM_CPUS" \
         /mnt/$VM_NAME/config
+    setup_vm_iptables $1 $2
 }
 
 RACK_ID="$ID"
