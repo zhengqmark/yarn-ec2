@@ -288,8 +288,10 @@ dialog,\
 isc-dhcp-client,\
 netbase,\
 net-tools,\
+iptables,\
 iproute,\
 iputils-ping,\
+dnsutils,\
 openssh-server,\
 openssh-client,\
 openmpi-bin,\
