@@ -323,8 +323,9 @@ if [ $RACK_ID -eq 0 ] ; then
         /srv/yarn/conf/yarn-site.xml
     sudo sed -i "s/yarn.resourcemanager.scheduler.class.value/`cat ~/etc/yarn-scheduler.txt`/" \
         /srv/yarn/conf/yarn-site.xml
-    WORKER=`cat hosts | try_fgrep r | try_fgrep h | try_fgrep -v r0 | cut -d' ' -f2 | tr '\n' ','`
-    sudo sed -i "s/yarn.tetris.hostnames.value/${WORKER:0:-1}/" \
+    WORKER_LIST=`cat hosts | try_fgrep r | try_fgrep h | try_fgrep -v r0`
+    WORKERS=`echo -n "$WORKER_LIST" | cut -d' ' -f2 | tr '\n' ','`
+    sudo sed -i "s/yarn.tetris.hostnames.value/${WORKERS:0:-1}/" \
         /srv/yarn/conf/yarn-site.xml
 fi
 
