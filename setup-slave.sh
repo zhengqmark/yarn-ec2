@@ -293,6 +293,8 @@ function setup_vm_iptables() {
     VM_NAME=`echo r"$1"h"$2"`
     IFCONF="/mnt/$VM_NAME/rootfs/etc/network/interfaces"
     echo "post-up iptables -t nat -F" | sudo tee -a $IFCONF
+    echo "post-up tc qdisc add dev eth0 handle 1: htb default 1"
+    echo "post-up tc class add dev eth0 parent 1: classid 1:1 htb rate 1250mbit ceil 1250mbit"
     cat hosts | try_fgrep h | while read ln ; do
         PEER_NAME=`echo $ln | cut -d' ' -f2`
         PEER_RACK=`echo $PEER_NAME | cut -dr -f2 | cut -dh -f1`
