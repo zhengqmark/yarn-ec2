@@ -188,6 +188,7 @@ echo "$ID" > my_id
 
 MASK=`echo $CIDR | cut -d/ -f2`
 DEV=`ls -1 /sys/class/net/ | fgrep -v lxc | fgrep -v lo | head -1`
+echo "$DEV" > my_nic
 
 sudo ip link set dev $DEV mtu 1500
 
