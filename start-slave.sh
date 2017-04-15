@@ -33,7 +33,7 @@ for vm in `sudo lxc-ls` ; do
     sleep 0.1
 done
 
-sudo tc qdisc del dev $DEV root  ### purge old network queues ###
+sudo tc qdisc del dev $DEV root || :  ### purge old network queues ###
 sudo iptables -t nat -F  ### will use our own rules ###
 
 sudo tc qdisc add dev $DEV root handle 1: htb
