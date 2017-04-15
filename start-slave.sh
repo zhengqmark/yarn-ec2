@@ -26,13 +26,17 @@ pushd ~/var/yarn-ec2 > /dev/null
 
 CIDR=`cat my_cidr`
 ID=`cat my_id`
-
-sudo iptables -t nat -F  ### will use our own rules ###
+DEV=`cat my_nic`
 
 for vm in `sudo lxc-ls` ; do
     sudo lxc-stop -k -n $vm || :
     sleep 0.1
 done
+
+sudo tc qdisc del dev $DEV  ### purge old network queues ###
+sudo iptables -t nat -F  ### will use our own rules ###
+
+sudo tc qdisc add dev $DEV root handle 1: htb
 
 RACK_ID="$ID"
 HOST_ID=0
@@ -41,6 +45,8 @@ for ip in `cat rack-$ID/vmips` ; do
     cat /etc/hosts | fgrep "192.168.1.$NODE_ID "
     sudo iptables -t nat -A PREROUTING -s $CIDR -d $ip -j DNAT --to 192.168.1.$NODE_ID
     sudo iptables -t nat -A POSTROUTING -s 192.168.1.$NODE_ID -d $CIDR -j SNAT --to $ip
+    sudo tc class add dev $DEV parent 1: classid 1:$NODE_ID htb rate 125mbit ceil 125mbit
+    sudo tc filter add dev $DEV protocol ip parent 1: prio 1 u32 match ip src $ip flowid 1:$NODE_ID
     VM_NAME=`echo r"$RACK_ID"h"$HOST_ID"`
     sudo lxc-start -n $VM_NAME
     HOST_ID=$(( HOST_ID + 1 ))
@@ -49,6 +55,7 @@ done
 sudo iptables -t nat -A POSTROUTING -s 192.168.1.0/24 ! -d 192.168.1.0/24 \
     -j SNAT --to `cat my_primary_ip`
 sudo iptables -t nat -L -n
+sudo tc filter show dev $DEV
 sudo lxc-ls -f
 
 popd > /dev/null
