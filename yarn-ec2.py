@@ -1403,66 +1403,82 @@ def real_main():
             print("The following instances will be terminated:")
             for inst in master_nodes + slave_nodes:
                 print("> %s" % get_dns_name(inst, opts.private_ips))
+
             print("ALL DATA ON ALL INSTANCES WILL BE LOST!!")
 
-        msg = "Are you sure you want to destroy the cluster {c}? (y/N) ".format(c=cluster_name)
-        response = raw_input(msg)
-        if response == "y":
-            print("Terminating master...")
-            for inst in master_nodes:
-                inst.terminate()
-            print("Terminating slaves...")
-            for inst in slave_nodes:
-                inst.terminate()
+            msg = "Are you sure you want to destroy the cluster {c}? (y/N) ".format(c=cluster_name)
+            response = raw_input(msg)
+            if response == "y":
+                if len(master_nodes) != 0:
+                    print("Terminating master...")
+                    for inst in master_nodes:
+                        inst.terminate()
+                    print("{m} instances terminated".format(m=len(master_nodes)))
+                if len(slave_nodes) != 0:
+                    print("Terminating slaves...")
+                    for inst in slave_nodes:
+                        inst.terminate()
+                    print("{s} instances terminated".format(s=len(slave_nodes)))
 
-            # Delete security groups as well
-            if opts.delete_groups:
-                group_names = [cluster_name + "-master", cluster_name + "-slaves"]
-                wait_for_cluster_state(
-                    conn=conn,
-                    opts=opts,
-                    cluster_instances=(master_nodes + slave_nodes),
-                    cluster_state='terminated'
-                )
-                print("Deleting security groups (this may take some time)...")
-                attempt = 1
-                while attempt <= 3:
-                    print("Attempt %d" % attempt)
-                    groups = [g for g in conn.get_all_security_groups() if g.name in group_names]
-                    success = True
-                    # Delete individual rules in all groups before deleting groups to
-                    # remove dependencies between them
-                    for group in groups:
-                        print("Deleting rules in security group " + group.name)
-                        for rule in group.rules:
-                            for grant in rule.grants:
-                                success &= group.revoke(ip_protocol=rule.ip_protocol,
-                                                        from_port=rule.from_port,
-                                                        to_port=rule.to_port,
-                                                        src_group=grant)
+                # Delete security groups as well
+                if opts.delete_groups:
+                    group_names = [cluster_name + "-master", cluster_name + "-slaves"]
+                    wait_for_cluster_state(
+                        conn=conn,
+                        opts=opts,
+                        cluster_instances=(master_nodes + slave_nodes),
+                        cluster_state='terminated'
+                    )
+                    print("Deleting security groups (this may take some time)...")
+                    attempt = 1
+                    while attempt <= 3:
+                        print("Attempt %d" % attempt)
+                        groups = [g for g in conn.get_all_security_groups() if g.name in group_names]
+                        success = True
+                        # Delete individual rules in all groups before deleting groups to
+                        # remove dependencies between them
+                        for group in groups:
+                            print("Deleting rules in security group " + group.name)
+                            for rule in group.rules:
+                                for grant in rule.grants:
+                                    success &= group.revoke(ip_protocol=rule.ip_protocol,
+                                                            from_port=rule.from_port,
+                                                            to_port=rule.to_port,
+                                                            src_group=grant)
 
-                    # Sleep for AWS eventual-consistency to catch up, and for instances
-                    # to terminate
-                    time.sleep(30)  # Yes, it does have to be this long :-(
-                    for group in groups:
-                        try:
-                            # It is needed to use group_id to make it work with VPC
-                            conn.delete_security_group(group_id=group.id)
-                            print("Deleted security group %s" % group.name)
-                        except boto.exception.EC2ResponseError:
-                            success = False
-                            print("Failed to delete security group %s" % group.name)
+                        # Sleep for AWS eventual-consistency to catch up, and for instances
+                        # to terminate
+                        time.sleep(30)  # Yes, it does have to be this long :-(
+                        for group in groups:
+                            try:
+                                # It is needed to use group_id to make it work with VPC
+                                conn.delete_security_group(group_id=group.id)
+                                print("Deleted security group %s" % group.name)
+                            except boto.exception.EC2ResponseError:
+                                success = False
+                                print("Failed to delete security group %s" % group.name)
 
-                    # Unfortunately, group.revoke() returns True even if a rule was not
-                    # deleted, so this needs to be rerun if something fails
-                    if success:
-                        break
+                        # Unfortunately, group.revoke() returns True even if a rule was not
+                        # deleted, so this needs to be rerun if something fails
+                        if success:
+                            break
 
-                    attempt += 1
+                        attempt += 1
 
-                if not success:
-                    print("Failed to delete all security groups after 3 tries.")
-                    print("Try re-running in a few minutes.")
+                    if not success:
+                        print("Failed to delete all security groups after 3 tries.")
+                        print("Try re-running in a few minutes.")
+        else:
+            print("ERROR: cannot find any running instances, did you misspell '{c}'?".format(c=cluster_name))
+
+        print("")
+        print("!! To avoid unnecessary EC2 cost:")
+        print("-------------------------")
+        print("!! Please double-check AWS web console to")
+        print("!! ascertain the temination of all your instances")
+        print("!! at possibly many AWS regional data centers.")
+        print("")
+        print("Thanks.")
 
 
     else:
