@@ -156,7 +156,7 @@ def parse_args():
         help="If you have multiple profiles (AWS or boto config), you can configure " +
              "additional, named profiles by using this option (default: %default)")
     parser.add_option(
-        "-t", "--instance-type", default="c4.4xlarge",
+        "-t", "--instance-type", default="r4.4xlarge",
         help="Type of instance to launch (default: %default). " +
              "WARNING: must be 64-bit; small instances won't work in production")
     parser.add_option(
