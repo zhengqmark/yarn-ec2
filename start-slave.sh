@@ -45,7 +45,7 @@ for ip in `cat rack-$ID/vmips` ; do
     cat /etc/hosts | fgrep "192.168.1.$NODE_ID "
     sudo iptables -t nat -A PREROUTING -s $CIDR -d $ip -j DNAT --to 192.168.1.$NODE_ID
     sudo iptables -t nat -A POSTROUTING -s 192.168.1.$NODE_ID -d $CIDR -j SNAT --to $ip
-    sudo tc class add dev $DEV parent 1: classid 1:$NODE_ID htb rate 125mbit ceil 125mbit
+    sudo tc class add dev $DEV parent 1: classid 1:$NODE_ID htb rate 625mbit ceil 625mbit
     sudo tc filter add dev $DEV protocol ip parent 1: prio 1 u32 match ip src $ip flowid 1:$NODE_ID
     VM_NAME=`echo r"$RACK_ID"h"$HOST_ID"`
     sudo lxc-start -n $VM_NAME
