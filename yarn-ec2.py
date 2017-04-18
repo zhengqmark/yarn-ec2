@@ -429,6 +429,14 @@ def launch_cluster(conn, opts, cluster_name):
 
         time.sleep(30)
 
+    if opts.instance_type != "r4.4xlarge":
+        print("WARNING: not using r4.4xlarge... performance may diff", file=stderr)
+        print("")
+        print("hold for 30 seconds...")
+        print("")
+
+        time.sleep(30)
+
     user_data_content = None
     if opts.user_data:
         with open(opts.user_data) as user_data_file:
