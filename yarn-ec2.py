@@ -64,7 +64,7 @@ DEFAULT_YARN_GITHUB_REPO = "https://github.com/zhengqmark/yarn"
 
 # Default location to get the yarn-ec2 scripts (and ami-list) from
 DEFAULT_YARN_EC2_GITHUB_REPO = "https://github.com/zhengqmark/yarn-ec2"
-DEFAULT_YARN_EC2_BRANCH = "master"
+DEFAULT_YARN_EC2_BRANCH = "r4"
 
 
 def setup_external_libs(libs):
