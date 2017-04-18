@@ -415,27 +415,23 @@ def launch_cluster(conn, opts, cluster_name):
 
     if opts.ebs_vol_num != 0 and opts.ebs_vol_size != 0:
         print("WARNING: will allocate EBS volumns... cost unnecessarily high", file=stderr)
-        print("")
-        print("hold for 30 seconds...")
-        print("")
+        response = raw_input("Do you want to continue? (y/N)")
+        if response != 'y':
+            sys.exit(1)
 
-        time.sleep(30)
-
+    if opts.spot_price <= 0:
+        opts.spot_price = None
     if opts.spot_price is None:
         print("WARNING: not using spot instances... cost unnecessarily high", file=stderr)
-        print("")
-        print("hold for 30 seconds...")
-        print("")
-
-        time.sleep(30)
+        response = raw_input("Do you want to continue? (y/N)")
+        if response != 'y':
+            sys.exit(1)
 
     if opts.instance_type != "r4.4xlarge":
-        print("WARNING: not using r4.4xlarge... performance may diff", file=stderr)
-        print("")
-        print("hold for 30 seconds...")
-        print("")
-
-        time.sleep(30)
+        print("WARNING: not using r4.4xlarge... performance may differ", file=stderr)
+        response = raw_input("Do you want to continue? (y/N)")
+        if response != 'y':
+            sys.exit(1)
 
     user_data_content = None
     if opts.user_data:
