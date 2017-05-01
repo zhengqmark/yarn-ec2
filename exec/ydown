@@ -22,13 +22,6 @@ SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 CONF="/srv/yarn/conf"
 
-ping ibuki -c 1 &>/dev/null
-
-if [ $? -ne 0 ] ; then
-    echo "NOTE: `basename $0` is supposed to be invoked at an ec2 instance... exit"
-    exit 1
-fi
-
 if [ `id -u` -ne 0 ] ; then
     echo "NOTE: `basename $0` must be executed as root... exit"
     exit 1
